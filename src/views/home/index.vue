@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import dataList from './listData'
 import advImg from '@/assets/images/home/adv01.png'
 import budgetImg from '@/assets/images/home/budget.png'
@@ -7,8 +8,9 @@ import editImg from '@/assets/images/home/edit-fill.png'
 import locationImg from '@/assets/images/home/location-fill.png'
 import securityImg from '@/assets/images/home/security-scan-fill.png'
 import myLits from '@/components/common/list/index.vue'
-import router from '@/router'
 import request from '@/utils/request'
+
+const router = useRouter()
 
 const btnList = [
   {

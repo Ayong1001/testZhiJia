@@ -36,7 +36,7 @@ function onRefresh() {
 
 /**
  * 获取列表数据
- * @param reset:是否重置数据,如不为false则在数组后追加数据
+ * 是否重置数据,如不为false则在数组后追加数据
  */
 function onLoad(reset = refreshLoading.value) {
   // 是否重置分页配置

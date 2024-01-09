@@ -8,6 +8,30 @@ NProgress.configure({ showSpinner: true, parent: '#app' })
 // 定义路由，每个路由都需要映射到一个组件
 const routes = [
   {
+    path: '/:catchA11(.*)',
+    name: '404',
+    component: () => import('@/views/common/404.vue'),
+    children: [],
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/login/index.vue'),
+    redirect: () => 'login/main',
+    children: [
+      {
+        path: 'main',
+        name: 'loginMain',
+        component: () => import('@/views/login/main/index.vue'),
+      },
+      {
+        path: 'register',
+        name: 'loginRegister',
+        component: () => import('@/views/login/register/index.vue'),
+      },
+    ],
+  },
+  {
     path: '/',
     name: 'main',
     component: () => import('@/views/index.vue'),
