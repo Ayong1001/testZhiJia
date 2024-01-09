@@ -7,14 +7,9 @@ const router = useRouter()
 <template>
   <div class="pageBox">
     <img src="/public/images/common/404.jpg" alt="">
-    <van-button
-      style="width: 100px"
-      plain
-      type="default"
-      @click="router.go(-1)"
-    >
+    <div class="button-submit" @click="router.go(-1)">
       返 回
-    </van-button>
+    </div>
   </div>
 </template>
 
@@ -27,9 +22,25 @@ const router = useRouter()
   flex-direction: column;
   align-items: center;
   justify-content: space-around;
+  background-color: #ffffff;
   img {
     width: 80%;
     object-fit: cover;
+  }
+  .button-submit {
+    position: relative;
+    z-index: 1;
+    margin: 0 auto;
+    width: 100px;
+    height: 49px;
+    background-image: linear-gradient(90deg, #ffffff 0%, #949494 100%),
+      linear-gradient(#000000, #ffffff);
+    background-blend-mode: normal, normal;
+    border-radius: 48px;
+    text-align: center;
+    line-height: 49px;
+    font-size: 13px;
+    color: white;
   }
 }
 </style>

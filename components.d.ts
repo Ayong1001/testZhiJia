@@ -11,7 +11,6 @@ declare module 'vue' {
     List: typeof import('./src/components/common/list/index.vue')['default']
     VanButton: typeof import('vant/es')['Button']
     VanCell: typeof import('vant/es')['Cell']
-    VanCellGroup: typeof import('vant/es')['CellGroup']
     VanCollapse: typeof import('vant/es')['Collapse']
     VanCollapseItem: typeof import('vant/es')['CollapseItem']
     VanConfigProvider: typeof import('vant/es')['ConfigProvider']
@@ -21,11 +20,8 @@ declare module 'vue' {
     VanIcon: typeof import('vant/es')['Icon']
     VanImage: typeof import('vant/es')['Image']
     VanList: typeof import('vant/es')['List']
-    VanNavBar: typeof import('vant/es')['NavBar']
     VanPullRefresh: typeof import('vant/es')['PullRefresh']
-    VanSwitch: typeof import('vant/es')['Switch']
     VanTabbar: typeof import('vant/es')['Tabbar']
     VanTabbarItem: typeof import('vant/es')['TabbarItem']
-    VanTag: typeof import('vant/es')['Tag']
   }
 }

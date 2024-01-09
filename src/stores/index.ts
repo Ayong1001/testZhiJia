@@ -5,5 +5,6 @@ export const useStore = defineStore({
   persist: true,
   state: () => ({
     mode: '', // light || dark
+    account: {}, // 账号信息
   }),
 })

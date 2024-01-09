@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { FormInstance } from 'vant'
+import request from '@/utils/request'
 
 const router = useRouter()
 
@@ -17,7 +18,7 @@ const formData = ref<LoginType>({
 })
 
 function submit(form) {
-  formData.value = form
+  request.post('/user/login', form)
 }
 </script>
 
@@ -26,7 +27,7 @@ function submit(form) {
     <div class="login-wrap">
       <div class="form-wrap">
         <h1 class="title">
-          实名制app
+          智佳家居
         </h1>
         <div class="formBox">
           <van-form ref="formRef" @submit="submit">
@@ -89,18 +90,17 @@ function submit(form) {
       }
       .otherBox {
         margin-top: 10px;
+        padding: 10px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         font-size: 12px;
         color: var(--van-blue);
       }
-      .van-cell {
-        padding: var(--van-cell-vertical-padding) 0;
-      }
       h1.title {
         margin: 20px 0;
         font-size: 20px;
+        text-align: center;
         font-weight: normal;
       }
     }
