@@ -9,7 +9,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     Chart: typeof import('./src/components/common/chart/index.vue')['default']
     List: typeof import('./src/components/common/list/index.vue')['default']
-    VanButton: typeof import('vant/es')['Button']
     VanCell: typeof import('vant/es')['Cell']
     VanCollapse: typeof import('vant/es')['Collapse']
     VanCollapseItem: typeof import('vant/es')['CollapseItem']

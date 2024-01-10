@@ -2,9 +2,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { FormInstance } from 'vant'
+import { useStore } from '@/stores'
 import request from '@/utils/request'
 
 const router = useRouter()
+const store = useStore()
 
 const formRef = ref<FormInstance>()
 
@@ -18,7 +20,12 @@ const formData = ref<LoginType>({
 })
 
 function submit(form) {
-  request.post('/user/login', form)
+  request.post('/user/login', form).then((res: any) => {
+    if (res.success === true) {
+      localStorage.setItem('u_token', res.token)
+      store.account = res.data
+    }
+  })
 }
 </script>
 

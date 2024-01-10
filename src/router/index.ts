@@ -8,12 +8,6 @@ NProgress.configure({ showSpinner: true, parent: '#app' })
 // 定义路由，每个路由都需要映射到一个组件
 const routes = [
   {
-    path: '/:catchA11(.*)',
-    name: '404',
-    component: () => import('@/views/common/404.vue'),
-    children: [],
-  },
-  {
     path: '/login',
     name: 'login',
     component: () => import('@/views/login/index.vue'),
@@ -59,6 +53,12 @@ const routes = [
       },
     ],
   },
+  {
+    path: '/:catchA11(.*)',
+    name: '404',
+    component: () => import('@/views/common/404.vue'),
+    children: [],
+  },
 ]
 
 // 创建路由实例并传递 `routes` 配置
@@ -69,8 +69,21 @@ const router = createRouter({
 })
 
 router.beforeEach((_to, _from, next) => {
-  NProgress.start() // start progress bar
-  next()
+  if (_to.path === '/login/main') {
+    NProgress.start() // start progress bar
+    next()
+  }
+  else {
+    const token = localStorage.getItem('u_token')
+    if (token === null || token === '') {
+      NProgress.start() // start progress bar
+      next('/login/main')
+    }
+    else {
+      NProgress.start() // start progress bar
+      next()
+    }
+  }
 })
 
 router.afterEach(() => {
