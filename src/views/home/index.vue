@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import dataList from './listData'
+
+// import dataList from './listData'
 import advImg from '@/assets/images/home/adv01.png'
 import budgetImg from '@/assets/images/home/budget.png'
 import editImg from '@/assets/images/home/edit-fill.png'
@@ -34,11 +35,15 @@ const btnList = [
     url: locationImg,
   },
 ]
-function goRoute(e: string) {
-  router.replace(e)
-}
+
+// 主页数据
+const dataList = ref()
+
 function getList() {
-  return request.get('/worker/construction')
+  request.get('/worker/construction').then((res: any) => {
+    if (res.success === true)
+      dataList.value = res.data
+  })
 }
 getList()
 
@@ -56,7 +61,7 @@ const activeName = ref()
           v-for="item in btnList"
           :key="item.route"
           class="btnItem"
-          @click="goRoute(item.route)"
+          @click="router.replace(item.route)"
         >
           <div class="imgBox">
             <van-image :src="item.url" />

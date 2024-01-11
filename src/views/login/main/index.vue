@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { showNotify } from 'vant'
 import type { FormInstance } from 'vant'
 import { useStore } from '@/stores'
 import request from '@/utils/request'
@@ -23,7 +24,13 @@ function submit(form) {
   request.post('/user/login', form).then((res: any) => {
     if (res.success === true) {
       localStorage.setItem('u_token', res.token)
+      localStorage.setItem('u_account', res.data)
+      store.token = res.token
       store.account = res.data
+      router.replace({ name: 'home' })
+    }
+    else {
+      showNotify(`登录失败：${res.message}`)
     }
   })
 }
