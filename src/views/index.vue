@@ -20,7 +20,11 @@ watch(checked, (val) => {
 <template>
   <div class="container">
     <div class="viewBox">
-      <RouterView />
+      <RouterView v-slot="{ Component }">
+        <KeepAlive>
+          <component :is="Component" />
+        </KeepAlive>
+      </RouterView>
     </div>
     <van-tabbar route>
       <van-tabbar-item replace to="/home" icon="wap-home">
