@@ -1,4 +1,4 @@
-import type { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
 import axios from 'axios'
 import { showNotify } from 'vant'
 import { localStorage } from '@/utils/local-storage'
@@ -10,13 +10,29 @@ import { STORAGE_TOKEN_KEY } from '@/stores/mutation-type'
 // 避免被 nginx 等负载均衡器丢弃了自定义的请求头
 export const REQUEST_TOKEN_KEY = 'Access-Token'
 
+type MethodType = 'get' | 'post' | 'put' | 'delete' | 'patch'
+interface MyResponeType {
+  code: number
+  data?: any
+  message?: string
+}
+type AxiosResponeType = Omit<AxiosInstance, MethodType> & {
+  <T = MyResponeType>(config: AxiosRequestConfig<any>): Promise<T>
+  <T = MyResponeType>(url: string, config?: AxiosRequestConfig<any>): Promise<T>
+  get<T = MyResponeType>(url: string, config?: AxiosRequestConfig): Promise<T>
+  delete<T = MyResponeType>(url: string, config?: AxiosRequestConfig): Promise<T>
+  post<T = MyResponeType>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
+  put<T = MyResponeType>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
+  patch<T = MyResponeType>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
+}
+
 // 创建 axios 实例
 const request = axios.create({
   // API 请求的默认前缀
   // eslint-disable-next-line node/prefer-global/process
   baseURL: process.env.VUE_APP_API_BASE_URL,
   timeout: 6000, // 请求超时时间
-})
+}) as unknown as AxiosResponeType
 
 export type RequestError = AxiosError<{
   message?: string
