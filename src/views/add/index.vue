@@ -2,7 +2,7 @@
 import { reactive, ref } from 'vue'
 import { areaList } from '@vant/area-data'
 import request from '@/utils/request'
-import addImg from '@/assets/imgs/add/addUser.svg'
+import addImg from '@/assets/images/add/addUser.svg'
 import workTypeList from '@/utils/common/workTypeList.js'
 
 const addState = ref(false)
@@ -141,26 +141,29 @@ function formSubmit() {
 
 <template>
   <div class="pageBox">
-    <div v-if="!addState" class="addBox" @click="changeAddState">
+    <div v-if="!addState" class="btnBox" @click="changeAddState">
       <img class="addImg" :src="addImg" alt="">
       <p style="text-align: center;">
         添 加 新 工 人
       </p>
     </div>
     <div v-else class="addBox">
-      <div class="addTitle">
-        <div class="addTitleLeft" @click="changeAddState">
-          <van-icon name="arrow-left" />
-          <text>返回</text>
-        </div>
-        <div class="addTitleCenter">
-          <text>工人信息</text>
-        </div>
-      </div>
+      <van-nav-bar
+        title="工人信息"
+        left-text="返回"
+        left-arrow
+        @click-left="changeAddState"
+      />
       <div class="addFormBox">
         <van-form ref="formRef" :model-value="formData" :rules="formRules">
-          <van-cell-group inset>
-            <p>用户基础信息</p>
+          <van-cell-group inset style="margin-bottom: 15px">
+            <van-field class="title">
+              <template #input>
+                <span>
+                  用户基础信息
+                </span>
+              </template>
+            </van-field>
             <van-field
               v-model="formData.w_name"
               name="姓名"
@@ -228,8 +231,14 @@ function formSubmit() {
               @click="pickers.isShow = true"
             />
           </van-cell-group>
-          <van-cell-group inset>
-            <p>户籍所在地</p>
+          <van-cell-group inset style="margin-bottom: 15px">
+            <van-field class="title">
+              <template #input>
+                <span>
+                  户籍所在地
+                </span>
+              </template>
+            </van-field>
             <van-field
               v-model="formData.w_domicileAddressCity"
               is-link
@@ -247,8 +256,14 @@ function formSubmit() {
               :rules="[{ required: true, message: '请填写详细地址' }]"
             />
           </van-cell-group>
-          <van-cell-group inset>
-            <p>经常居住地</p>
+          <van-cell-group inset style="margin-bottom: 15px">
+            <van-field class="title">
+              <template #input>
+                <span>
+                  经常居住地
+                </span>
+              </template>
+            </van-field>
             <van-field
               v-model="formData.w_habitualResidenceCity"
               is-link
@@ -266,8 +281,14 @@ function formSubmit() {
               :rules="[{ required: true, message: '请填写详细地址' }]"
             />
           </van-cell-group>
-          <van-cell-group inset>
-            <p>其它</p>
+          <van-cell-group inset style="margin-bottom: 15px">
+            <van-field class="title">
+              <template #input>
+                <span>
+                  其它
+                </span>
+              </template>
+            </van-field>
             <van-field
               v-model="formData.w_wechatNumber"
               name="微信号"
@@ -330,118 +351,30 @@ function formSubmit() {
 .pageBox {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  .addBox {
-    width: 100%;
-    height: 100%;
-    .addImg{
-    width: 100px;
-    height: 100px;
-  }
-    .addTitle {
-      height: 120px;
-      padding: 0 20px;
-      position: relative;
-      font-size: 36px;
-      background-color: #fff;
-      border-bottom: 2px #dadada solid;
-      display: flex;
-      align-items: center;
-
-      .addTitleLeft {
-        display: flex;
-        align-items: center;
-
-        image {
-          width: 60px;
-          height: 60px;
-          object-fit: cover;
-          transform: rotate(180deg);
-        }
-      }
-
-      .addTitleCenter {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
+  position: relative;
+  .btnBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    .addImg {
+      width: 100px;
+      object-fit: cover;
+      margin-bottom: 10px;
     }
-
+  }
+  .addBox {
     .addFormBox {
-      .formItem {
-        padding: 0 40px;
-        margin: 30px 0;
-        background-color: #fff;
-
-        .formItemTitle {
-          height: 80px;
-          margin-bottom: 20px;
-          border-bottom: 2px #dadada solid;
-          display: flex;
-          align-items: center;
-          font-size: 28px;
-          font-weight: 600;
-
-          image {
-            width: 60px;
-            height: 60px;
-            margin-right: 20px;
-            object-fit: cover;
-          }
-        }
-      }
-
-      .radioStyle {
-        display: flex;
-
-        ::v-deep .van-label-pointer {
-          display: flex;
-          align-items: center;
-          margin-right: 40px;
-        }
-      }
-
-      ::v-deep .van-select {
-        border: 0;
-
-        .van-select__input-text {
-          font-size: 32px;
-          color: rgb(0 0 0 / 54%);
-        }
-      }
-
-      ::v-deep .van-date-x--border {
-        border: 0;
-
-        .van-date-x {
-          padding: 0;
-        }
-
-        .van-date__x-van-field {
-          padding: 0;
-          font-size: 32px;
-        }
-
-        .uniui-calendar::before {
-          content: '';
-        }
-      }
-
-      ::v-deep .van-forms-item {
-        padding-bottom: 10px;
-        margin-bottom: 10px;
-        border-bottom: 2px #dadada solid;
-
-        .van-forms-item__content {
-          display: flex;
-          align-items: center;
-        }
-
-        .van-forms-item__label {
-          width: 220px !important;
+      margin-top: 10px;
+      .title {
+        :deep(.van-field__control) {
+          display: block;
+          text-align: center;
+          font-weight: bold;
         }
       }
     }
