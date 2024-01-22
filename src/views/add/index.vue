@@ -3,7 +3,8 @@ import { reactive, ref } from 'vue'
 import { areaList } from '@vant/area-data'
 import request from '@/utils/request'
 import addImg from '@/assets/images/add/addUser.svg'
-import workTypeList from '@/utils/common/workTypeList.js'
+import workTypeList from '@/utils/common/workTypeList'
+import countryList from '@/utils/common/country'
 
 const addState = ref(false)
 const formRef = ref(null)
@@ -33,7 +34,7 @@ const formData = ref(JSON.parse(JSON.stringify(baseFormData)))
 
 const pickers = reactive({
   isShow: false,
-  showCode: 'sex',
+  showCode: '',
   sexColumns: [{ text: '男', value: 1 }, { text: '女', value: 0 }],
   idTypeColumns: [
     {
@@ -58,11 +59,30 @@ const pickers = reactive({
     },
   ],
   typeWorkColumns: workTypeList,
+  countryList: countryList.map((item) => {
+    return { value: item.country_id, text: item.country_name_cn }
+  }),
 })
 
 // 通用选择器
-function onConfirm(selectedValues) {
-  formData.value[pickers.showCode] = selectedValues
+function onConfirm(e) {
+  switch (pickers.showCode) {
+    case 'w_typeWork':
+    case 'w_nationality':
+      formData.value[pickers.showCode] = e.selectedOptions[0].text
+      break
+    case 'w_birthday':
+    case 'w_domicileAddressCity':
+    case 'w_habitualResidenceCity':
+      formData.value[pickers.showCode] = e.selectedOptions.map((item: any) => {
+        return item.text
+      }).join('-')
+      break
+    default:
+      formData.value[pickers.showCode] = e.selectedOptions[0].value
+      break
+  }
+  pickers.isShow = false
 }
 const formRules = {
   // 对name字段进行必填验证
@@ -156,7 +176,7 @@ function formSubmit() {
       />
       <div class="addFormBox">
         <van-form ref="formRef" :model-value="formData" :rules="formRules">
-          <van-cell-group inset style="margin-bottom: 15px">
+          <van-cell-group inset class="formBox">
             <van-field class="title">
               <template #input>
                 <span>
@@ -166,39 +186,47 @@ function formSubmit() {
             </van-field>
             <van-field
               v-model="formData.w_name"
-              name="姓名"
+              name="w_name"
               label="姓名"
               placeholder="姓名"
               :rules="[{ required: true, message: '请填写姓名' }]"
             />
             <van-field
-              v-model="formData.w_sex"
+              v-model.number="formData.w_sex"
               is-link
               readonly
-              name="picker"
+              name="w_sex"
               label="性别"
               placeholder="点击选择性别"
-              @click="pickers.isShow = true"
-            />
+              @click="pickers.showCode = 'w_sex';pickers.isShow = true"
+            >
+              <template #input>
+                <span>{{ pickers.sexColumns.find(e => e.value === formData.w_sex)?.text ?? '' }}</span>
+              </template>
+            </van-field>
             <van-field
               v-model="formData.w_phone"
-              name="联系电话"
+              name="w_phone"
               label="联系电话"
               placeholder="联系电话"
               :rules="[{ required: true, message: '请填写联系电话' }]"
             />
             <van-field
-              v-model="formData.w_idType"
+              v-model.number="formData.w_idType"
               is-link
               readonly
-              name="picker"
+              name="w_idType"
               label="证件类型"
               placeholder="点击选择证件类型"
-              @click="pickers.isShow = true"
-            />
+              @click="pickers.showCode = 'w_idType';pickers.isShow = true"
+            >
+              <template #input>
+                <span>{{ pickers.idTypeColumns.find(e => e.value === formData.w_idType)?.text ?? '' }}</span>
+              </template>
+            </van-field>
             <van-field
               v-model="formData.w_idNumber"
-              name="证件号码"
+              name="w_idNumber"
               label="证件号码"
               placeholder="证件号码"
               :rules="[{ required: true, message: '请填写证件号码' }]"
@@ -207,31 +235,31 @@ function formSubmit() {
               v-model="formData.w_typeWork"
               is-link
               readonly
-              name="工种"
+              name="w_typeWork"
               label="工种"
               placeholder="点击选择工种"
-              @click="pickers.isShow = true"
+              @click="pickers.showCode = 'w_typeWork';pickers.isShow = true"
             />
             <van-field
               v-model="formData.w_birthday"
               is-link
               readonly
-              name="出生日期"
+              name="w_birthday"
               label="出生日期"
               placeholder="点击选择出生日期"
-              @click="pickers.isShow = true"
+              @click="pickers.showCode = 'w_birthday';pickers.isShow = true"
             />
             <van-field
               v-model="formData.w_nationality"
               is-link
               readonly
-              name="国籍"
+              name="w_nationality"
               label="国籍"
               placeholder="点击选择国籍"
-              @click="pickers.isShow = true"
+              @click="pickers.showCode = 'w_nationality';pickers.isShow = true"
             />
           </van-cell-group>
-          <van-cell-group inset style="margin-bottom: 15px">
+          <van-cell-group inset class="formBox">
             <van-field class="title">
               <template #input>
                 <span>
@@ -243,20 +271,20 @@ function formSubmit() {
               v-model="formData.w_domicileAddressCity"
               is-link
               readonly
-              name="picker"
+              name="w_domicileAddressCity"
               label="所在地区"
               placeholder="点击选择所在地区"
-              @click="pickers.isShow = true"
+              @click="pickers.showCode = 'w_domicileAddressCity';pickers.isShow = true"
             />
             <van-field
               v-model="formData.w_domicileAddress"
-              name="详细地址"
+              name="w_domicileAddress"
               label="详细地址"
               placeholder="详细地址"
               :rules="[{ required: true, message: '请填写详细地址' }]"
             />
           </van-cell-group>
-          <van-cell-group inset style="margin-bottom: 15px">
+          <van-cell-group inset class="formBox">
             <van-field class="title">
               <template #input>
                 <span>
@@ -268,20 +296,20 @@ function formSubmit() {
               v-model="formData.w_habitualResidenceCity"
               is-link
               readonly
-              name="picker"
+              name="w_habitualResidenceCity"
               label="所在地区"
               placeholder="点击选择所在地区"
-              @click="pickers.isShow = true"
+              @click="pickers.showCode = 'w_habitualResidenceCity';pickers.isShow = true"
             />
             <van-field
               v-model="formData.w_habitualResidence"
-              name="详细地址"
+              name="w_habitualResidence"
               label="详细地址"
               placeholder="详细地址"
               :rules="[{ required: true, message: '请填写详细地址' }]"
             />
           </van-cell-group>
-          <van-cell-group inset style="margin-bottom: 15px">
+          <van-cell-group inset class="formBox">
             <van-field class="title">
               <template #input>
                 <span>
@@ -291,28 +319,28 @@ function formSubmit() {
             </van-field>
             <van-field
               v-model="formData.w_wechatNumber"
-              name="微信号"
+              name="w_wechatNumber"
               label="微信号"
               placeholder="微信号"
               :rules="[{ required: true, message: '请填写微信号' }]"
             />
             <van-field
               v-model="formData.w_email"
-              name="邮箱"
+              name="w_email"
               label="邮箱"
               placeholder="邮箱"
               :rules="[{ required: true, message: '请填写邮箱' }]"
             />
             <van-field
               v-model="formData.w_emergencyPhone"
-              name="紧急联系电话"
+              name="w_emergencyPhone"
               label="紧急联系电话"
               placeholder="紧急联系电话"
               :rules="[{ required: true, message: '请填写紧急联系电话' }]"
             />
           </van-cell-group>
           <van-button class="formSubmit" @click="formSubmit">
-            提交
+            提 交
           </van-button>
         </van-form>
       </div>
@@ -320,29 +348,41 @@ function formSubmit() {
     <!-- 选择器弹窗 -->
     <van-popup v-model:show="pickers.isShow" position="bottom">
       <van-picker
-        v-if="pickers.showCode === 'sex'"
+        v-if="pickers.showCode === 'w_sex'"
         :columns="pickers.sexColumns"
         @confirm="onConfirm"
         @cancel="pickers.isShow = false"
       />
       <van-picker
-        v-if="pickers.showCode === 'idType'"
+        v-if="pickers.showCode === 'w_idType'"
         :columns="pickers.idTypeColumns"
         @confirm="onConfirm"
         @cancel="pickers.isShow = false"
       />
       <van-picker
-        v-if="pickers.showCode === 'typeWork'"
+        v-if="pickers.showCode === 'w_typeWork'"
         :columns="pickers.typeWorkColumns"
         @confirm="onConfirm"
         @cancel="pickers.isShow = false"
       />
-      <van-date-picker
-        v-if="pickers.showCode === 'birthday'"
-        v-model="formData.w_birthday"
-        title="选择日期"
+      <van-picker
+        v-if="pickers.showCode === 'w_nationality'"
+        :columns="pickers.countryList"
+        @confirm="onConfirm"
+        @cancel="pickers.isShow = false"
       />
-      <van-area v-if="pickers.showCode === 'address'" title="选择地区" :area-list="areaList" />
+      <van-date-picker
+        v-if="pickers.showCode === 'w_birthday'"
+        :min-date="new Date(1900, 0, 1)"
+        :max-date="new Date()"
+        title="选择日期"
+        @confirm="onConfirm"
+        @cancel="pickers.isShow = false"
+      />
+      <van-area
+        v-if="['w_domicileAddressCity', 'w_habitualResidenceCity'].includes(pickers.showCode)" title="选择地区" :area-list="areaList" @confirm="onConfirm"
+        @cancel="pickers.isShow = false"
+      />
     </van-popup>
   </div>
 </template>
@@ -376,6 +416,15 @@ function formSubmit() {
           text-align: center;
           font-weight: bold;
         }
+      }
+      .formBox {
+        margin-bottom: 15px;
+      }
+      .formSubmit {
+        width: 100px;
+        margin-bottom: 20px;
+        left: 50%;
+        transform: translate(-50%, 0);
       }
     }
   }
