@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { areaList } from '@vant/area-data'
+import { showDialog, showNotify } from 'vant'
 import request from '@/utils/request'
 import addImg from '@/assets/images/add/addUser.svg'
 import workTypeList from '@/utils/common/workTypeList'
@@ -9,25 +10,25 @@ import countryList from '@/utils/common/country'
 const addState = ref(false)
 const formRef = ref(null)
 const baseFormData = {
-  w_name: '', // 姓名
-  w_domicileAddress: '', // 户籍详细地址
-  w_phone: '', // 联系电话
-  w_idType: '', // 证件类型
-  w_idNumber: '', // 证件号码
+  w_name: null, // 姓名
+  w_domicileAddress: null, // 户籍详细地址
+  w_phone: null, // 联系电话
+  w_idType: null, // 证件类型
+  w_idNumber: null, // 证件号码
   w_typeWork: workTypeList[0].text, // 工种
-  w_birthday: '', // 生日
+  w_birthday: null, // 生日
   w_sex: null, // 性别
   w_nationality: '中国', // 国籍
-  w_domicileAddressCity: '', // 户籍所在地
-  w_habitualResidenceCity: '', // 经常居住地
-  w_habitualResidence: '', // 经常详细地址
-  w_emergencyContact: '', // 紧急联系人
-  w_addressCity: '', // 现在所在地
-  w_address: '', // 现在详细地址
-  w_nation: '', // 民族
-  w_wechatNumber: '', // 微信号
-  w_email: '', // 邮箱
-  w_emergencyPhone: '', // 紧急联系电话
+  w_domicileAddressCity: null, // 户籍所在地
+  w_habitualResidenceCity: null, // 经常居住地
+  w_habitualResidence: null, // 经常详细地址
+  w_emergencyContact: null, // 紧急联系人
+  // w_addressCity: null, // 现在所在地
+  // w_address: null, // 现在详细地址
+  w_nation: null, // 民族
+  w_wechatNumber: null, // 微信号
+  w_email: null, // 邮箱
+  w_emergencyPhone: null, // 紧急联系电话
 }
 // form表单数据
 const formData = ref(JSON.parse(JSON.stringify(baseFormData)))
@@ -84,53 +85,8 @@ function onConfirm(e) {
   }
   pickers.isShow = false
 }
-const formRules = {
-  // 对name字段进行必填验证
-  w_name: {
-    rules: [
-      {
-        required: true,
-        errorMessage: '请输入姓名',
-      },
-      {
-        minLength: 2,
-        maxLength: 8,
-        errorMessage: '姓名长度在 {minLength} 到 {maxLength} 个字符',
-      },
-    ],
-  },
-  // 对性别进行验证
-  w_sex: {
-    rules: [
-      {
-        required: true,
-        errorMessage: '请选择性别',
-      },
-    ],
-  },
-  // 对手机号码进行验证
-  w_phone: {
-    rules: [
-      {
-        required: true,
-        errorMessage: '请输入手机号码',
-      },
-      {
-        pattern: '^1[3-9]\\d{9}$',
-        errorMessage: '请输入正确的手机号码',
-      },
-    ],
-  },
-  // 对常住地进行验证
-  w_habitualResidenceCity: {
-    rules: [
-      {
-        required: true,
-        errorMessage: '请填写常住地',
-      },
-    ],
-  },
-}
+// 默认选择时间
+const defaultBirthday = ['2000', '01', '01']
 // 添加页面切换
 function changeAddState() {
   formData.value = JSON.parse(JSON.stringify(baseFormData))
@@ -141,15 +97,19 @@ function formSubmit() {
   formRef.value
     .validate()
     .then(() => {
-      request.post('/worker/add', { data: formData.value }).then((res: any) => {
+      request.post('/worker/add', formData.value).then((res) => {
         if (res.statusCode === 200) {
-          // messageToggle('success', '提交成功!')
+          showNotify({ type: 'success', message: '提交成功！' })
           setTimeout(() => {
             changeAddState()
           }, 1000)
         }
         else {
-          // messageToggle('error', '提交失败!')
+          showDialog({
+            title: '警 告',
+            message: `提交失败！(${res.message})`,
+          }).then(() => {
+          })
         }
       })
     })
@@ -161,7 +121,7 @@ function formSubmit() {
 
 <template>
   <div class="pageBox">
-    <div v-if="!addState" class="btnBox" @click="changeAddState">
+    <div v-if="addState" class="btnBox" @click="changeAddState">
       <img class="addImg" :src="addImg" alt="">
       <p style="text-align: center;">
         添 加 新 工 人
@@ -175,7 +135,7 @@ function formSubmit() {
         @click-left="changeAddState"
       />
       <div class="addFormBox">
-        <van-form ref="formRef" :model-value="formData" :rules="formRules">
+        <van-form ref="formRef">
           <van-cell-group inset class="formBox">
             <van-field class="title">
               <template #input>
@@ -189,7 +149,9 @@ function formSubmit() {
               name="w_name"
               label="姓名"
               placeholder="姓名"
-              :rules="[{ required: true, message: '请填写姓名' }]"
+              required
+              :rules="[{ required: true, message: '请填写姓名' },
+                       { pattern: /^.{2,8}$/, message: '姓名长度在 2 到 8 个字符' }]"
             />
             <van-field
               v-model.number="formData.w_sex"
@@ -198,6 +160,8 @@ function formSubmit() {
               name="w_sex"
               label="性别"
               placeholder="点击选择性别"
+              required
+              :rules="[{ required: true, message: '请选择性别' }]"
               @click="pickers.showCode = 'w_sex';pickers.isShow = true"
             >
               <template #input>
@@ -209,7 +173,9 @@ function formSubmit() {
               name="w_phone"
               label="联系电话"
               placeholder="联系电话"
-              :rules="[{ required: true, message: '请填写联系电话' }]"
+              required
+              :rules="[{ required: true, message: '请填写联系电话' },
+                       { pattern: /^(?:(?:\+|00)86)?1[3-9]\d{9}$/, message: '请填写正确的手机号' }]"
             />
             <van-field
               v-model.number="formData.w_idType"
@@ -229,7 +195,6 @@ function formSubmit() {
               name="w_idNumber"
               label="证件号码"
               placeholder="证件号码"
-              :rules="[{ required: true, message: '请填写证件号码' }]"
             />
             <van-field
               v-model="formData.w_typeWork"
@@ -247,6 +212,8 @@ function formSubmit() {
               name="w_birthday"
               label="出生日期"
               placeholder="点击选择出生日期"
+              required
+              :rules="[{ required: true, message: '请选择出生日期' }]"
               @click="pickers.showCode = 'w_birthday';pickers.isShow = true"
             />
             <van-field
@@ -281,7 +248,6 @@ function formSubmit() {
               name="w_domicileAddress"
               label="详细地址"
               placeholder="详细地址"
-              :rules="[{ required: true, message: '请填写详细地址' }]"
             />
           </van-cell-group>
           <van-cell-group inset class="formBox">
@@ -299,6 +265,8 @@ function formSubmit() {
               name="w_habitualResidenceCity"
               label="所在地区"
               placeholder="点击选择所在地区"
+              required
+              :rules="[{ required: true, message: '请选择经常居住地' }]"
               @click="pickers.showCode = 'w_habitualResidenceCity';pickers.isShow = true"
             />
             <van-field
@@ -306,7 +274,6 @@ function formSubmit() {
               name="w_habitualResidence"
               label="详细地址"
               placeholder="详细地址"
-              :rules="[{ required: true, message: '请填写详细地址' }]"
             />
           </van-cell-group>
           <van-cell-group inset class="formBox">
@@ -322,21 +289,18 @@ function formSubmit() {
               name="w_wechatNumber"
               label="微信号"
               placeholder="微信号"
-              :rules="[{ required: true, message: '请填写微信号' }]"
             />
             <van-field
               v-model="formData.w_email"
               name="w_email"
               label="邮箱"
               placeholder="邮箱"
-              :rules="[{ required: true, message: '请填写邮箱' }]"
             />
             <van-field
               v-model="formData.w_emergencyPhone"
               name="w_emergencyPhone"
               label="紧急联系电话"
               placeholder="紧急联系电话"
-              :rules="[{ required: true, message: '请填写紧急联系电话' }]"
             />
           </van-cell-group>
           <van-button class="formSubmit" @click="formSubmit">
@@ -373,6 +337,7 @@ function formSubmit() {
       />
       <van-date-picker
         v-if="pickers.showCode === 'w_birthday'"
+        v-model="defaultBirthday"
         :min-date="new Date(1900, 0, 1)"
         :max-date="new Date()"
         title="选择日期"

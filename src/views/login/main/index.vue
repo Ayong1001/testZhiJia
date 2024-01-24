@@ -23,8 +23,8 @@ const formData = ref<LoginType>({
 function submit(form) {
   request.post('/user/login', form).then((res: any) => {
     if (res.success === true) {
-      localStorage.setItem('u_token', res.token)
-      localStorage.setItem('u_account', res.data)
+      localStorage.setItem('u_token', JSON.stringify(res.token))
+      localStorage.setItem('u_account', JSON.stringify(res.data))
       store.token = res.token
       store.account = res.data
       router.replace({ name: 'home' })

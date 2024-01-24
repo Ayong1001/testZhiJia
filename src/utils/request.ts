@@ -12,7 +12,8 @@ export const REQUEST_TOKEN_KEY = 'Access-Token'
 
 type MethodType = 'get' | 'post' | 'put' | 'delete' | 'patch'
 interface MyResponeType {
-  code: number
+  success?: boolean
+  statusCode: number
   data?: any
   message?: string
 }
