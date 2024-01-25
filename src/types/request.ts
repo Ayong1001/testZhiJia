@@ -1,5 +1,5 @@
 export default interface HTTPResponseInterface<D = unknown> {
-  code: number
+  success: boolean
   data: D
   message?: string
 }

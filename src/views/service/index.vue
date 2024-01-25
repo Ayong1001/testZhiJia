@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { List } from 'vant'
+import MyList from '@/components/common/list/index.vue'
 import request from '@/utils/request'
 import 'vant/lib/index.css'
 import baseWorkTypeList from '@/utils/common/workTypeList'
@@ -25,6 +25,35 @@ function engineerClick(item) {
     name: `asdqwe`,
     params: { w_id: item.w_id },
   })
+}
+// 列表配置
+const listConfig = [{
+  name: '等级',
+  listSolt: 'w_grade',
+}, {
+  name: '姓名',
+  code: 'w_name',
+}, {
+  name: '年龄',
+  code: 'w_age',
+}, {
+  name: '完工件数',
+  code: 'w_completedQuantity',
+}, {
+  name: '目前状态',
+  listSolt: 'state',
+}]
+interface ListType {
+  w_completedQuantity: number
+  w_garde: string
+  w_id: number
+  w_age: number
+  w_name: string
+  w_state: number
+}
+// 列表数据请求
+function getList(params) {
+  return request.get('/worker', { params: Object.assign(params, formData) })
 }
 // 默认地址数组
 const defaultAddress = reactive([
@@ -90,7 +119,6 @@ function addressSelect(item, index) {
   provinceIndex.value = index
   formData.address = item.name
   engineerList.value = []
-  clickLoadMore()
 }
 
 // 颜色控制
@@ -101,44 +129,6 @@ function trBGColor(item) {
     return '#fdedd9'
   else return '#d1f2d7'
 }
-// 详细地址选择器
-function permanentAddressChange(result) {
-  addressText.value = ''
-  result.splice(0, 1)
-  result.forEach((item, index) => {
-    if (index === 0) {
-      addressText.value += item.name
-      formData.address += `-${item.name}`
-    }
-    else {
-      formData.address += `-${item.name}`
-      addressText.value += item.name
-    }
-  })
-  page = 1
-  engineerList.value = []
-  clickLoadMore()
-}
-// 列表数据请求
-function clickLoadMore() {
-  request.get('/worker', {
-    w_typeWork: formData.workType,
-    w_habitualResidenceCity: formData.address,
-  }).then((res) => {
-    if (res.statusCode !== 200 || res.data.data.length === 0) {
-      loading.value = false
-      finished.value = true
-    }
-    else {
-      res.data.data.forEach((item) => {
-        engineerList.value.push(item)
-      })
-      page += 1
-      loading.value = false
-    }
-  })
-}
-
 onMounted(() => {})
 </script>
 
@@ -164,100 +154,37 @@ onMounted(() => {})
           <img class="ListIcon" src="@/assets/images/service/list.svg" mode="">
         </div>
       </div>
-      <div class="row">
-        <div class="addressText">
-          <div class="addressPicker">
-            <AddressPicker
-              ref="AddressPickerRef"
-              :base-code="defaultAddress[0].id"
-              @change="permanentAddressChange"
-            >
-              {{ addressText || '请选择地址' }}
-            </AddressPicker>
-          </div>
-          <uni-icons class="addressPickerIcon" type="bottom" size="10" />
-        </div>
-        <uni-data-checkbox
-          v-model="defWorkTypeIndex"
-          class="workTypeCheckbox"
-          mode="tag"
-          :localdata="workTypeList"
-          selected-color="#2979ff"
-          @change="workTypeChange"
-        />
-      </div>
     </div>
     <div class="engineerTable">
-      <List
-        v-model:loading="loading"
-        :finished="finished"
-        finished-text="没有更多了"
-        @load="clickLoadMore"
-      >
-        <uni-table stripe empty-text="" style="height: 100%">
-          <!-- 表头行 -->
-          <uni-tr class="trStyle" height="60">
-            <uni-th width="30" align="center">
-              排名
-            </uni-th>
-            <uni-th width="40" align="center">
-              等级
-            </uni-th>
-            <uni-th width="50" align="center">
-              姓名
-            </uni-th>
-            <uni-th width="30" align="center">
-              年龄
-            </uni-th>
-            <uni-th width="50" align="center">
-              完工件数
-            </uni-th>
-            <uni-th width="50" align="center">
-              目前状态
-            </uni-th>
-          </uni-tr>
-          <!-- 表格数据行 -->
-          <uni-tr
-            v-for="(item, index) in engineerList"
-            :key="index"
-            :style="{ backgroundColor: `${trBGColor(item)}` }"
-            @click="engineerClick(item)"
-          >
-            <uni-td align="center">
-              {{ index + 1 }}
-            </uni-td>
-            <uni-td class="imgTd" align="center">
-              <img v-if="item.w_grade === 1" src="@/assets/images/service/gold.svg" mode="">
-              <img
-                v-else-if="item.w_grade === 2"
-                src="@/assets/images/service/silver.svg"
-                mode=""
-              >
-              <img v-else src="@/assets/images/service/bronze.svg" mode="">
-            </uni-td>
-            <uni-td align="center">
-              {{ item.w_name }}
-            </uni-td>
-            <uni-td align="center">
-              {{ item.w_age }}
-            </uni-td>
-            <uni-td align="center">
-              {{ item.w_completedQuantity }}
-            </uni-td>
-            <uni-td align="center">
-              <p v-if="item.state === 1">
-                正在施工
-              </p>
-              <p v-else-if="item.state === 0">
-                已完工
-              </p>
-              <p v-else>
-                空闲
-              </p>
-            </uni-td>
-          </uni-tr>
-        </uni-table>
-      </List>
+      <MyList :get-list="getList">
+        <template #default="listData">
+          <van-cell v-for="(listItem, listIndex) in listData as unknown as ListType[]" :key="listIndex">
+            <div v-for="(configItem, configIndex) in listConfig" :key="listIndex + configIndex">
+              <template v-if="configItem.listSolt === 'w_grade'">
+                <img v-if="listItem.w_garde === '1'" src="@/assets/images/service/gold.svg" mode="">
+                <img
+                  v-else-if="listItem.w_garde === '2'"
+                  src="@/assets/images/service/silver.svg"
+                  mode=""
+                >
+                <img v-else src="@/assets/images/service/bronze.svg" mode="">
+              </template>
+              <template v-else-if="configItem.listSolt === 'state'">
+                <span v-if="listItem.w_state === 1">
+                  正在施工
+                </span>
+                <span v-else-if="listItem.w_state === 0">
+                  已完工
+                </span>
+                <span v-else>
+                  空闲
+                </span>
+              </template>
+              <span v-else-if="configItem.code">{{ listItem.w_name ?? '' }}</span>
+            </div>
+          </van-cell>
+        </template>
+      </myList>
     </div>
     <!-- 选择器弹窗 -->
     <van-popup v-model:show="pickers.isShow" position="bottom">
@@ -347,7 +274,7 @@ onMounted(() => {})
         flex: 1;
         margin-left: 20px;
 
-        ::v-deep .checklist-group {
+        :v-deep(.checklist-group) {
           width: 520px;
           flex-wrap: nowrap;
           align-items: center;
@@ -364,7 +291,7 @@ onMounted(() => {})
         }
       }
 
-      ::v-deep .uni-mt-10 {
+      :v-deep(.uni-mt-10) {
         width: 400px;
         margin-top: 0;
         align-items: center;
@@ -396,11 +323,11 @@ onMounted(() => {})
       }
     }
 
-    ::v-deep .uni-table-th {
+    :v-deep(.uni-table-th) {
       padding: 24px 12px;
     }
 
-    ::v-deep .uni-table-td {
+    :v-deep(.uni-table-td) {
       padding: 8px 0;
     }
   }

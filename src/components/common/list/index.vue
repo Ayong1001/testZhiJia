@@ -8,7 +8,7 @@ const props = defineProps({
     type: Function,
     default: () =>
       function () {
-        Promise.resolve({ code: 0, data: [] })
+        Promise.resolve({ success: true, data: [] })
       },
   },
   limit: {
@@ -54,9 +54,9 @@ function onLoad(reset = refreshLoading.value) {
   return props
     .getList({ page: ++page.value, limit: props.limit })
     .then((res: HTTPResponseInterface<any>) => {
-      const { code, data, message } = res
+      const { success, data, message } = res
 
-      if (code !== 0)
+      if (success !== true)
         return Promise.reject(message)
 
       // 插入数据
@@ -101,9 +101,7 @@ defineExpose({
         :error-text="errorText"
         @load="onLoad"
       >
-        <template v-for="(item, index) in list">
-          <slot name="cell" :data="item" :index="index" :list="list" />
-        </template>
+        <slot :list-data="list" />
         <template #finished>
           <van-empty v-if="page === 1 && !list.length" description="暂无数据" />
           <span v-else>没有更多了</span>
