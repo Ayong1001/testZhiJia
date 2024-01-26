@@ -19,7 +19,6 @@ const formData = reactive({
   address: '四川省',
   workType: '',
 })
-const engineerList = ref([])
 function engineerClick(item) {
   router.push({
     name: `asdqwe`,
@@ -43,14 +42,6 @@ const listConfig = [{
   name: '目前状态',
   listSolt: 'state',
 }]
-interface ListType {
-  w_completedQuantity: number
-  w_garde: string
-  w_id: number
-  w_age: number
-  w_name: string
-  w_state: number
-}
 // 列表数据请求
 function getList(params) {
   return request.get('/worker', { params: Object.assign(params, formData) })
@@ -109,16 +100,12 @@ function onConfirm(e) {
 
 const colorState = ref(false)
 const AddressPickerRef = ref(null)
-const addressText = ref('')
 
 function addressSelect(item, index) {
-  addressText.value = ''
   defaultAddress[defaultAddress.length - 1].name = '更多...'
-  AddressPickerRef.value.baseAddressChange(item.id)
   colorState.value = false
   provinceIndex.value = index
   formData.address = item.name
-  engineerList.value = []
 }
 
 // 颜色控制
@@ -157,30 +144,32 @@ onMounted(() => {})
     </div>
     <div class="engineerTable">
       <MyList :get-list="getList">
-        <template #default="listData">
-          <van-cell v-for="(listItem, listIndex) in listData as unknown as ListType[]" :key="listIndex">
-            <div v-for="(configItem, configIndex) in listConfig" :key="listIndex + configIndex">
-              <template v-if="configItem.listSolt === 'w_grade'">
-                <img v-if="listItem.w_garde === '1'" src="@/assets/images/service/gold.svg" mode="">
-                <img
-                  v-else-if="listItem.w_garde === '2'"
-                  src="@/assets/images/service/silver.svg"
-                  mode=""
-                >
-                <img v-else src="@/assets/images/service/bronze.svg" mode="">
-              </template>
-              <template v-else-if="configItem.listSolt === 'state'">
-                <span v-if="listItem.w_state === 1">
-                  正在施工
-                </span>
-                <span v-else-if="listItem.w_state === 0">
-                  已完工
-                </span>
-                <span v-else>
-                  空闲
-                </span>
-              </template>
-              <span v-else-if="configItem.code">{{ listItem.w_name ?? '' }}</span>
+        <template #default="{ listData }">
+          <van-cell v-for="(listItem, listIndex) in listData" :key="listIndex">
+            <div class="cellBox">
+              <div v-for="(configItem, configIndex) in listConfig" :key="listIndex + configIndex" class="cellItem">
+                <template v-if="configItem.listSolt === 'w_grade'">
+                  <img v-if="listItem.w_garde === '1'" src="@/assets/images/service/gold.svg" mode="">
+                  <img
+                    v-else-if="listItem.w_garde === '2'"
+                    src="@/assets/images/service/silver.svg"
+                    mode=""
+                  >
+                  <img v-else src="@/assets/images/service/bronze.svg" mode="">
+                </template>
+                <template v-else-if="configItem.listSolt === 'state'">
+                  <span v-if="listItem.w_state === 1">
+                    正在施工
+                  </span>
+                  <span v-else-if="listItem.w_state === 0">
+                    已完工
+                  </span>
+                  <span v-else>
+                    空闲
+                  </span>
+                </template>
+                <span v-else-if="configItem.code">{{ listItem[configItem.code] ?? '' }}</span>
+              </div>
             </div>
           </van-cell>
         </template>
@@ -208,17 +197,13 @@ onMounted(() => {})
   height: 100%;
   display: flex;
   flex-direction: column;
-  // background-img: url('@/static/img/home/BG1.png');
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
   .rowText1Active {
     color: #2979ff;
   }
 
   .serviceHeader {
     .row {
-      padding: 0 20px;
-      height: 100px;
+      padding: 0 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -240,27 +225,9 @@ onMounted(() => {})
 
       .moreBox {
         img {
-          width: 50px;
-          height: 50px;
+          width: 30px;
+          height: 30px;
           object-fit: cover;
-        }
-      }
-
-      .addressText {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        .addressPicker {
-          max-width: 200px;
-          overflow: hidden;
-          font-size: 28px;
-          white-space: nowrap;
-          font-weight: bold;
-        }
-
-        .addressPickerIcon {
-          margin-left: 20px;
         }
       }
 
@@ -303,10 +270,19 @@ onMounted(() => {})
     flex: 1;
     overflow: auto;
     border-radius: 10px;
-    // ::v-deep .uni-table {
-    //   height: 100%;
-    // }
-
+    .cellBox {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      .cellItem {
+        flex: 1;
+        display: flex;
+        img {
+          width: 35px;
+          height: 35px;
+        }
+      }
+    }
     .trStyle {
       background-color: #00000012;
     }
@@ -317,10 +293,6 @@ onMounted(() => {})
       justify-content: center;
       // border-bottom: 0;
 
-      img {
-        width: 50px;
-        height: 50px;
-      }
     }
 
     :v-deep(.uni-table-th) {
