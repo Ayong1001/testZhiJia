@@ -20,8 +20,6 @@ const props = defineProps({
 const refreshLoading = ref(false) // 下拉刷新加载动画
 const loading = ref(false) // 滑动加载动画
 const finished = ref(false) // 数据是否加载完成
-const error = ref(false) // 是否出现异常
-const errorText = ref('') // 异常信息
 const page = ref(0) // 页码
 const list = ref<any[]>([]) // 列表数据
 
@@ -46,10 +44,6 @@ function onLoad(reset = refreshLoading.value) {
     refreshLoading.value = false
   }
 
-  // 清除异常信息
-  error.value = false
-  errorText.value = ''
-
   // 获取数据
   return props
     .getList({ page: ++page.value, limit: props.limit })
@@ -65,18 +59,16 @@ function onLoad(reset = refreshLoading.value) {
         (data?.records ?? data ?? []).map((o: never) => reactive(o)),
       )
 
-      if (data?.records) {
+      if (data?.records?.length < props.limit || data?.length < props.limit) {
         // 如果当前页数据尺寸小于分页尺寸,加载结束
-        finished.value = data.records.length < props.limit
+        finished.value = true
       }
       else {
         // 其余情况,加载结束
         finished.value = true
       }
     })
-    .catch((err: Error) => {
-      error.value = true
-      errorText.value = err.message ?? err.toString()
+    .catch(() => {
     })
     .finally(() => {
       loading.value = false
@@ -90,31 +82,14 @@ defineExpose({
 </script>
 
 <template>
-  <div class="overflow-auto h-full">
-    <van-pull-refresh v-model="refreshLoading" @refresh="onRefresh">
-      <van-list
-        v-bind="$attrs"
-        v-model="loading"
-        v-model:error="error"
-        :finished="finished"
-        finished-text="没有更多了"
-        :error-text="errorText"
-        @load="onLoad"
-      >
-        <slot :list-data="list" />
-        <template #finished>
-          <van-empty v-if="page === 1 && !list.length" description="暂无数据" />
-          <span v-else>没有更多了</span>
-        </template>
-        <template #error>
-          <van-empty
-            v-if="page === 1 && !list.length"
-            image="error"
-            :description="errorText"
-          />
-          <span v-else>{{ errorText }}</span>
-        </template>
-      </van-list>
-    </van-pull-refresh>
-  </div>
+  <van-pull-refresh v-model="refreshLoading" @refresh="onRefresh">
+    <van-list
+      v-model="loading"
+      :finished="finished"
+      finished-text="没有更多了"
+      @load="onLoad"
+    >
+      <slot :list-data="list" />
+    </van-list>
+  </van-pull-refresh>
 </template>
