@@ -16,28 +16,34 @@ const formData = reactive({
 })
 function engineerClick(item) {
   router.push({
-    name: `asdqwe`,
-    params: { w_id: item.w_id },
+    name: `workerDetails`,
+    query: { w_id: item.w_id },
   })
 }
 // 列表配置
-const provinceIndex = ref(0) // 激活省份下标
-const listConfig = [{
-  name: '等级',
-  listSolt: 'w_grade',
-}, {
-  name: '姓名',
-  code: 'w_name',
-}, {
-  name: '年龄',
-  code: 'w_age',
-}, {
-  name: '完工件数',
-  code: 'w_completedQuantity',
-}, {
-  name: '目前状态',
-  listSolt: 'state',
-}]
+const provinceIndex = ref(null) // 激活省份下标
+const listConfig = [
+  {
+    name: '等级',
+    listSolt: 'w_grade',
+  },
+  {
+    name: '姓名',
+    code: 'w_name',
+  },
+  {
+    name: '年龄',
+    code: 'w_age',
+  },
+  {
+    name: '完工件数',
+    code: 'w_completedQuantity',
+  },
+  {
+    name: '目前状态',
+    listSolt: 'state',
+  },
+]
 // 初始化工种列表
 const workTypeList = [
   {
@@ -52,16 +58,31 @@ const pickers = reactive({
 })
 const myListRef = ref()
 const activeAddress = computed(() => {
-  if (formData.w_habitualResidenceCity.includes('-'))
-    return `${formData.w_habitualResidenceCity.split('-')[1]}-${formData.w_habitualResidenceCity.split('-')[2]}`
-  else return ''
+  if (formData.w_habitualResidenceCity.includes('-')) {
+    return `${formData.w_habitualResidenceCity.split('-')[1]}-${
+      formData.w_habitualResidenceCity.split('-')[2]
+    }`
+  }
+  else { return '' }
 })
 // 默认地址数组
-const defaultAddress = reactive(['四川省', '重庆市', '北京市', '上海市', '更多...',
+const defaultAddress = reactive([
+  '四川省',
+  '重庆市',
+  '北京市',
+  '上海市',
+  '更多...',
 ])
 // 筛选地址数据
 const newAreaList = computed(() => {
-  return { city_list: areaList.city_list, county_list: areaList.county_list, province_list: Object.fromEntries(Object.entries(areaList.province_list).filter(([, value]) => value === defaultAddress[provinceIndex.value])),
+  return {
+    city_list: areaList.city_list,
+    county_list: areaList.county_list,
+    province_list: Object.fromEntries(
+      Object.entries(areaList.province_list).filter(
+        ([, value]) => value === defaultAddress[provinceIndex.value],
+      ),
+    ),
   }
 })
 // 颜色控制
@@ -83,15 +104,23 @@ function provinceChoose({ selectedOptions }) {
   myListRef.value.onRefresh()
 }
 function addressChoose({ selectedOptions }) {
-  formData.w_habitualResidenceCity = selectedOptions.map((item: any) => {
-    return item.text
-  }).join('-')
+  formData.w_habitualResidenceCity = selectedOptions
+    .map((item: any) => {
+      return item.text
+    })
+    .join('-')
   pickers.isShow = false
   myListRef.value.onRefresh()
 }
 // 工种选择
 const activeWorkerType = ref(0)
 function chooseWorkerType(item, index) {
+  if (index === 0) {
+    activeWorkerType.value = index
+    formData.w_typeWork = null
+    myListRef.value.onRefresh()
+    return
+  }
   activeWorkerType.value = index
   formData.w_typeWork = item.text
   myListRef.value.onRefresh()
@@ -109,30 +138,52 @@ function getList(params) {
       <div class="row">
         <div class="rowText1Box">
           <p
-            v-for="(item, index) in defaultAddress.slice(0, 4)" :key="index" class="rowText1"
+            v-for="(item, index) in defaultAddress.slice(0, 4)"
+            :key="index"
+            class="rowText1"
             :class="[provinceIndex === index ? `rowText1Active` : '']"
             @click="addressSelect(item, index)"
           >
             {{ item }}
           </p>
           <p class="rowText1" :class="[colorState ? `rowText1Active` : '']">
-            {{
-              defaultAddress.slice(-1)[0]
-            }}
+            {{ defaultAddress.slice(-1)[0] }}
           </p>
         </div>
-        <div class="moreBox" @click="pickers.type = 1;pickers.isShow = true">
-          <img class="ListIcon" src="@/assets/images/service/list.svg" mode="">
+        <div
+          class="moreBox"
+          @click="
+            pickers.type = 1;
+            pickers.isShow = true
+          "
+        >
+          <img
+            class="ListIcon"
+            src="@/assets/images/service/list.svg"
+            mode=""
+          >
         </div>
       </div>
       <div class="otherBox">
         <div class="dropdownBox">
-          <van-dropdown-menu :overlay="false" @click="pickers.type = 2;pickers.isShow = true">
+          <van-dropdown-menu
+            :overlay="false"
+            @click="
+              pickers.type = 2;
+              pickers.isShow = true
+            "
+          >
             <van-dropdown-item :title="activeAddress || '请选择地区'" />
           </van-dropdown-menu>
         </div>
         <div class="workerBox">
-          <van-tag v-for="(item, index) in workTypeList" :key="index" :plain="activeWorkerType !== index" type="primary" @click="chooseWorkerType(item, index)">
+          <van-tag
+            v-for="(item, index) in workTypeList"
+            :key="index"
+            :plain="activeWorkerType !== index"
+            type="primary"
+            @click="chooseWorkerType(item, index)"
+          >
             {{ item.text }}
           </van-tag>
         </div>
@@ -147,45 +198,72 @@ function getList(params) {
         </div>
       </van-cell> -->
       <div class="listBox">
-        <div class="myList">
-          <MyList ref="myListRef" :get-list="getList">
-            <template #default="{ listData }">
-              <van-cell v-for="(listItem, listIndex) in listData" :key="listIndex" @click="engineerClick(listItem)">
-                <div class="cellBox">
-                  <div v-for="(configItem, configIndex) in listConfig" :key="listIndex + configIndex" class="cellItem">
-                    <template v-if="configItem.listSolt === 'w_grade'">
-                      <img v-if="listItem.w_garde === '1'" src="@/assets/images/service/gold.svg" mode="">
-                      <img
-                        v-else-if="listItem.w_garde === '2'"
-                        src="@/assets/images/service/silver.svg"
-                        mode=""
-                      >
-                      <img v-else src="@/assets/images/service/bronze.svg" mode="">
-                    </template>
-                    <template v-else-if="configItem.listSolt === 'state'">
-                      <span v-if="listItem.w_state === 1">
-                        正在施工
-                      </span>
-                      <span v-else-if="listItem.w_state === 0">
-                        已完工
-                      </span>
-                      <span v-else>
-                        空闲
-                      </span>
-                    </template>
-                    <span v-else-if="configItem.code">{{ listItem[configItem.code] ?? '' }}</span>
-                  </div>
+        <MyList ref="myListRef" :get-list="getList">
+          <template #default="{ listData }">
+            <van-cell
+              v-for="(listItem, listIndex) in listData"
+              :key="listIndex"
+              @click="engineerClick(listItem)"
+            >
+              <div class="cellBox">
+                <div
+                  v-for="(configItem, configIndex) in listConfig"
+                  :key="listIndex + configIndex"
+                  class="cellItem"
+                >
+                  <template v-if="configItem.listSolt === 'w_grade'">
+                    <img
+                      v-if="listItem.w_garde === '1'"
+                      src="@/assets/images/service/gold.svg"
+                      mode=""
+                    >
+                    <img
+                      v-else-if="listItem.w_garde === '2'"
+                      src="@/assets/images/service/silver.svg"
+                      mode=""
+                    >
+                    <img
+                      v-else
+                      src="@/assets/images/service/bronze.svg"
+                      mode=""
+                    >
+                  </template>
+                  <template v-else-if="configItem.listSolt === 'state'">
+                    <span v-if="listItem.w_state === 1">
+                      正在施工
+                    </span>
+                    <span v-else-if="listItem.w_state === 0">
+                      已完工
+                    </span>
+                    <span v-else>
+                      空闲
+                    </span>
+                  </template>
+                  <span v-else-if="configItem.code">{{
+                    listItem[configItem.code] ?? ''
+                  }}</span>
                 </div>
-              </van-cell>
-            </template>
-          </myList>
-        </div>
+              </div>
+            </van-cell>
+          </template>
+        </MyList>
       </div>
     </div>
     <!-- 选择器弹窗 -->
     <van-popup v-model:show="pickers.isShow" position="bottom">
-      <van-area v-if="pickers.type === 1" title="地区选择" :area-list="areaList" columns-num="1" @confirm="provinceChoose" />
-      <van-area v-if="pickers.type === 2" title="地区选择" :area-list="newAreaList" @confirm="addressChoose" />
+      <van-area
+        v-if="pickers.type === 1"
+        title="地区选择"
+        :area-list="areaList"
+        columns-num="1"
+        @confirm="provinceChoose"
+      />
+      <van-area
+        v-if="pickers.type === 2"
+        title="地区选择"
+        :area-list="newAreaList"
+        @confirm="addressChoose"
+      />
     </van-popup>
   </div>
 </template>
@@ -282,20 +360,16 @@ function getList(params) {
     .listBox {
       flex: 1;
       overflow: hidden;
-      .myList {
-        height: 100%;
-        overflow: auto;
-        .cellBox {
+      .cellBox {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        .cellItem {
+          flex: 1;
           display: flex;
-          align-items: center;
-          justify-content: space-between;
-          .cellItem {
-            flex: 1;
-            display: flex;
-            img {
-              width: 35px;
-              height: 35px;
-            }
+          img {
+            width: 35px;
+            height: 35px;
           }
         }
       }
