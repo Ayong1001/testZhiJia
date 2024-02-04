@@ -47,7 +47,6 @@ watch(checked, (val) => {
 .container {
   width: 100vw;
   height: 100vh;
-  padding-top: 30px;
   position: relative;
   .viewBox {
     width: 100%;

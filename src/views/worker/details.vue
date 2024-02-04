@@ -11,7 +11,7 @@ const router = useRouter()
 const workerData = ref({})
 const historyList = ref([])
 const priceList = ref({})
-let nowDelData = {}
+const active = ref(0)
 const alertDialog = ref(null)
 const alertConfig = ref({
   msgType: '',
@@ -22,30 +22,42 @@ const alertConfig = ref({
 })
 // 请求基本信息数据
 function getWorker() {
-  request.get('/worker/id', { params: {
-    w_id: route.query.w_id,
-  } }).then((res) => {
-    if (res.success === true)
-      workerData.value = res.data
-  })
+  request
+    .get('/worker/id', {
+      params: {
+        w_id: route.query.w_id,
+      },
+    })
+    .then((res) => {
+      if (res.success === true)
+        workerData.value = res.data
+    })
 }
 function getHistoryorder() {
   // 请求装修历史数据
-  request.get('/worker/historyorder', { params: {
-    w_id: route.query.w_id,
-  } }).then((res) => {
-    if (res.success === true)
-      historyList.value = res.data
-  })
+  request
+    .get('/worker/historyorder', {
+      params: {
+        w_id: route.query.w_id,
+      },
+    })
+    .then((res) => {
+      if (res.success === true)
+        historyList.value = res.data
+    })
 }
 function getPrices() {
   // 请求参考价格数据
-  request.get('/worker/prices', { params: {
-    w_id: route.query.w_id,
-  } }).then((res) => {
-    if (res.success === true)
-      priceList.value = res.data
-  })
+  request
+    .get('/worker/prices', {
+      params: {
+        w_id: route.query.w_id,
+      },
+    })
+    .then((res) => {
+      if (res.success === true)
+        priceList.value = res.data
+    })
 }
 
 const dataList = [
@@ -74,31 +86,6 @@ const dataList = [
     name: '等级',
   },
 ]
-const contactList = [
-  {
-    id: '9',
-    name: '地点',
-  },
-  {
-    id: '10',
-    name: '客户姓名',
-  },
-  {
-    id: '11',
-    name: '联系方式',
-  },
-]
-const popupRef = ref(null)
-const popupList = {
-  msgType: '',
-  messageText: '',
-}
-// 消息提示
-function messageToggle(type, span) {
-  popupList.msgType = type
-  popupList.messageText = span
-  popupRef.value.open()
-}
 // 联系师傅
 const inputDialog = ref(null)
 function dialogToggle(type) {
@@ -390,29 +377,6 @@ function btnClick(data) {
     dialogToggle('删除装修历史')
   }
 }
-// 执行删除
-function delConfirm() {
-  request({
-    url: `/order/delete?o_id=${nowDelData.name.o_id}`,
-    method: 'DELETE',
-  }).then((res) => {
-    if (res.statusCode === 200) {
-      messageToggle('success', '删除成功!')
-      setTimeout(() => {
-        refreshData()
-      }, 500)
-    }
-    else {
-      messageToggle('error', '删除失败!')
-    }
-  })
-}
-// 页面数据刷新
-function refreshData() {
-  getWorker()
-  getHistoryorder()
-  getPrices()
-}
 
 onMounted(() => {
   getWorker()
@@ -422,7 +386,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="workerData.w_id" class="userContainer">
+  <!-- <div v-if="workerData.w_id" class="userContainer"> -->
+  <div class="userContainer">
     <div class="top">
       <van-nav-bar
         title="详细信息"
@@ -431,167 +396,175 @@ onMounted(() => {
         @click-left="router.go(-1)"
       />
       <div class="userBox">
-        <van-card
-          num="2"
-          price="2.00"
-          desc="描述信息"
-          title="商品标题"
-          :thumb="Screenshot1"
-        >
-          <template #tags>
-            <van-tag plain type="primary">
-              标签
-            </van-tag>
-            <van-tag plain type="primary">
-              标签
-            </van-tag>
+        <van-card price="50.00" desc="" :thumb="Screenshot1">
+          <template #title>
+            <div class="titleBox">
+              <span class="title">张师傅</span>
+              <div class="workerType">
+                <van-tag plain type="primary">
+                  瓦工
+                </van-tag>
+                <van-tag plain type="primary">
+                  木工
+                </van-tag>
+              </div>
+            </div>
+          </template>
+          <template #desc>
+            <p>37岁/ 5年工龄/ 四川省成都市</p>
+            <p>累计完工：216 /次</p>
+          </template>
+          <template #bottom>
+            /小时
           </template>
           <template #footer>
-            <van-button size="mini">
-              编辑
-            </van-button>
+            <van-icon name="weapp-nav" />
           </template>
         </van-card>
       </div>
     </div>
     <div class="bottom">
-      <div class="tabBox">
-        <Tabs
-          v-model:active="active"
-          class="tabs"
-          scrollspy
-          sticky
-          offset-top="14.35rem"
-        >
-          <Tab title="资料" class="tab tab1">
-            <CellGroup>
-              <Field
-                v-for="(item, index) in dataList"
-                :key="index"
-                :label="item.name"
-                center
-                readonly
-                colon
-                clickable
-              >
-                <template #input>
-                  <span>
-                    {{
-                      item.name === '等级'
-                        ? workerData[item.id] === 1
-                          ? '金牌师傅'
-                          : workerData[item.id] === 0
-                            ? '银牌师傅'
-                            : '铜牌师傅'
-                        : workerData[item.id]
-                    }}
-                  </span>
-                </template>
-              </Field>
-            </CellGroup>
-          </Tab>
-          <Tab title="装修历史" class="tab tab2">
-            <CellGroup>
-              <Cell class="title1" title="装修历史" center>
-                <template #value>
-                  <span class="editBtn2" @click.stop="editClick(4)">
-                    新增
-                  </span>
-                </template>
-              </Cell>
-              <u-swipe-action
-                v-for="(item, index) in historyList.slice(0, 4)"
-                :key="index"
-              >
-                <u-swipe-action-item
-                  :key="item"
-                  :name="item"
-                  :options="[
-                    {
-                      span: '编辑',
-                      style: {
-                        backgroundColor: '#3c9cff',
-                      },
+      <van-tabs
+        v-model:active="active"
+        sticky
+        scrollspy
+        background="var(--van-gray-2)"
+        offset-top="174px"
+      >
+        <van-tab title="资料">
+          <van-cell-group>
+            <van-field
+              v-for="(item, index) in dataList"
+              :key="index"
+              :label="item.name"
+              center
+              readonly
+              colon
+              clickable
+            >
+              <template #input>
+                <span>
+                  {{
+                    item.name === '等级'
+                      ? workerData[item.id] === 1
+                        ? '金牌师傅'
+                        : workerData[item.id] === 0
+                          ? '银牌师傅'
+                          : '铜牌师傅'
+                      : workerData[item.id]
+                  }}
+                </span>
+              </template>
+            </van-field>
+          </van-cell-group>
+        </van-tab>
+        <van-tab title="装修历史">
+          <van-cell-group>
+            <van-field
+              class="titleField"
+              label="装修历史"
+              clickable
+              readonly
+            >
+              <template #right-icon>
+                <span @click.stop="editClick(4)">
+                  新增
+                </span>
+              </template>
+            </van-field>
+            <u-swipe-action
+              v-for="(item, index) in historyList.slice(0, 4)"
+              :key="index"
+            >
+              <u-swipe-action-item
+                :key="item"
+                :name="item"
+                :options="[
+                  {
+                    span: '编辑',
+                    style: {
+                      backgroundColor: '#3c9cff',
                     },
-                    {
-                      span: '删除',
-                      style: {
-                        backgroundColor: '#f56c6c',
-                      },
+                  },
+                  {
+                    span: '删除',
+                    style: {
+                      backgroundColor: '#f56c6c',
                     },
-                  ]"
-                  @click="btnClick"
-                >
-                  <div class="swipe-action u-border-top">
-                    <Cell>
-                      <div class="address">
-                        <img
-                          :src="`/static/c${index + 1}.png`"
-                          mode="scaleToFill"
-                        >
-                        <span>{{ item.o_address }}</span>
-                      </div>
-                      <div class="message">
-                        <span>{{ item.o_date }}</span>
-                        <span>{{ item.o_area }}</span>
-                        <span>
-                          {{
-                            item.o_garde === 0
-                              ? '铜牌'
-                              : item.o_garde === 1
-                                ? '金牌'
-                                : item.o_garde === 2
-                                  ? '银牌'
-                                  : ''
-                          }}
-                        </span>
-                        <span>{{ item.o_price }}</span>
-                      </div>
-                    </Cell>
-                  </div>
-                </u-swipe-action-item>
-              </u-swipe-action>
-            </CellGroup>
-          </Tab>
-          <Tab title="参考价格" class="tab tab1">
-            <CellGroup>
-              <Cell class="title1" title="参考价格" center>
-                <template #value>
-                  <span class="editBtn2" @click.stop="editClick(3)">
-                    编辑
-                  </span>
-                </template>
-              </Cell>
-              <Field
-                v-model="priceList.w_historyPrice"
-                label="历史最低单价"
-                center
-                readonly
-                colon
-                clickable
-              />
-              <Field
-                v-model="priceList.w_price"
-                label="目前施工单价"
-                center
-                readonly
-                colon
-                clickable
-              />
-            </CellGroup>
-          </Tab>
-          <Tab title="完工照片" class="tab">
-            <CellGroup>
-              <Cell class="title1" title="完工照片" center />
-              <Cell>
-                <div class="imgBox" />
-              </Cell>
-            </CellGroup>
-          </Tab>
-          <!-- <tab title="联系" class="tab tab1">
-            <CellGroup>
-              <Cell class="title1" title="联系师傅" center></Cell>
-              <Field
+                  },
+                ]"
+                @click="btnClick"
+              >
+                <div class="swipe-action u-border-top">
+                  <van-cell>
+                    <div class="address">
+                      <img
+                        :src="`/static/c${index + 1}.png`"
+                        mode="scaleToFill"
+                      >
+                      <span>{{ item.o_address }}</span>
+                    </div>
+                    <div class="message">
+                      <span>{{ item.o_date }}</span>
+                      <span>{{ item.o_area }}</span>
+                      <span>
+                        {{
+                          item.o_garde === 0
+                            ? '铜牌'
+                            : item.o_garde === 1
+                              ? '金牌'
+                              : item.o_garde === 2
+                                ? '银牌'
+                                : ''
+                        }}
+                      </span>
+                      <span>{{ item.o_price }}</span>
+                    </div>
+                  </van-cell>
+                </div>
+              </u-swipe-action-item>
+            </u-swipe-action>
+          </van-cell-group>
+        </van-tab>
+        <van-tab title="参考价格">
+          <van-cell-group>
+            <van-cell class="title1" title="参考价格" center>
+              <template #value>
+                <span class="editBtn2" @click.stop="editClick(3)">
+                  编辑
+                </span>
+              </template>
+            </van-cell>
+            <van-field
+              v-model="priceList.w_historyPrice"
+              label="历史最低单价"
+              center
+              readonly
+              colon
+              clickable
+            />
+            <van-field
+              v-model="priceList.w_price"
+              label="目前施工单价"
+              center
+              readonly
+              colon
+              clickable
+            />
+          </van-cell-group>
+        </van-tab>
+        <van-tab title="完工照片">
+          <van-cell-group>
+            <van-cell class="title1" title="完工照片" center />
+            <van-cell>
+              <div class="imgBox" />
+            </van-cell>
+          </van-cell-group>
+        </van-tab>
+        <!-- <tab title="联系" class="tab tab1">
+            <van-cell-group>
+              <van-cell class="title1" title="联系师傅" center></van-cell>
+              <van-field
                 v-for="(item, index) in contactList"
                 v-model="workerData[item.id]"
                 :label="item.name"
@@ -601,53 +574,10 @@ onMounted(() => {
                 clickable
                 :key="index"
               >
-              </Field>
-            </CellGroup>
+              </van-field>
+            </van-cell-group>
           </tab> -->
-          <button class="btn" @click="dialogToggle('联系师傅')">
-            联系师傅
-          </button>
-          <uni-popup ref="inputDialog" type="dialog">
-            <uni-popup-dialog
-              mode="input"
-              title="联系师傅"
-              placeholder="请输入内容"
-              @confirm="dialogInputConfirm"
-            >
-              <CellGroup>
-                <Field
-                  v-for="(item, index) in contactList"
-                  :key="index"
-                  v-model="workerData[item.id]"
-                  :label="item.name"
-                  center
-                  readonly
-                  colon
-                  clickable
-                />
-              </CellGroup>
-            </uni-popup-dialog>
-          </uni-popup>
-          <uni-popup ref="alertDialog" type="dialog">
-            <uni-popup-dialog
-              :type="alertConfig.msgType"
-              :cancel-span="alertConfig.cancelText"
-              :confirm-span="alertConfig.confirmText"
-              :title="alertConfig.title"
-              :content="alertConfig.content"
-              @confirm="delConfirm"
-            />
-          </uni-popup>
-          <uni-popup ref="popupRef" type="message">
-            <uni-popup-message
-              :type="popupList.msgType"
-              :message="popupList.messageText"
-              :duration="2000"
-            />
-          </uni-popup>
-          <div style="height: 1px" />
-        </Tabs>
-      </div>
+      </van-tabs>
     </div>
   </div>
 </template>
@@ -661,14 +591,26 @@ onMounted(() => {
 
   .top {
     width: 100%;
-    height: 400px;
-    background-color: #00abff99;
+    background-color: var(--van-gray-2);
     display: flex;
     flex-direction: column;
     .userBox {
       padding-top: 10px;
       :deep(.van-card) {
-        background-color: #fff;
+        background-color: var(--van-gray-2);
+      }
+      .titleBox {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        .title {
+          font-size: 15px;
+          font-weight: bold;
+        }
+        .workerType {
+          display: flex;
+          gap: 5px;
+        }
       }
     }
   }
@@ -676,116 +618,6 @@ onMounted(() => {
   .bottom {
     flex: 1;
     overflow: auto;
-
-    .tabBox {
-      width: 100%;
-      height: 100%;
-
-      .tabs {
-        box-sizing: border-box;
-        .title1 {
-          font-size: 34px;
-          font-weight: bold;
-          height: 100px;
-          .editBtn2 {
-            font-size: 30px;
-            letter-spacing: 3px;
-          }
-        }
-
-        .tab {
-          border-bottom: 30px #f5f5f5 solid;
-
-          .imgBox {
-            width: 100%;
-            overflow-x: scroll;
-            display: flex;
-            flex-wrap: nowrap;
-            align-items: center;
-
-            img {
-              flex-shrink: 0;
-              margin: 0 20px;
-              max-height: 300px;
-            }
-          }
-          .u-page {
-            padding: 0;
-          }
-
-          .u-demo-block__title {
-            padding: 10px 0 2px 15px;
-          }
-
-          .swipe-action {
-            &__content {
-              padding: 25px 0;
-
-              &__text {
-                font-size: 15px;
-                padding-left: 30px;
-              }
-            }
-          }
-        }
-
-        .tab1 {
-          :deep(.van-field__label) {
-            font-size: 32px;
-            color: #999a9c;
-          }
-
-          :deep(.van-field__control) {
-            font-size: 30px;
-          }
-        }
-
-        .tab2 {
-          .address {
-            display: flex;
-            align-items: center;
-
-            img {
-              width: 35px;
-              height: 35px;
-              object-fit: cover;
-              margin-right: 10px;
-            }
-
-            span {
-              font-size: 32px;
-              color: #323233;
-            }
-          }
-
-          .message {
-            box-sizing: border-box;
-            width: 100%;
-            padding: 0 50px;
-            display: flex;
-            justify-content: space-between;
-
-            span {
-              font-size: 28px;
-            }
-          }
-        }
-        .btn {
-          width: 100%;
-          height: 100px;
-          margin: 40px auto;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-      }
-    }
-  }
-
-  :deep(.van-field__label) {
-    width: auto;
-    min-width: var(--van-field-label-width);
-    max-width: 50%;
   }
 }
 </style>

@@ -63,7 +63,9 @@ const activeAddress = computed(() => {
       formData.w_habitualResidenceCity.split('-')[2]
     }`
   }
-  else { return '' }
+  else {
+    return ''
+  }
 })
 // 默认地址数组
 const defaultAddress = reactive([
@@ -188,6 +190,21 @@ function getList(params) {
           </van-tag>
         </div>
       </div>
+      <van-cell class="listTitleBox">
+        <div class="listTitle">
+          <div
+            v-for="(titleItem, titleIndex) in [
+              {
+                name: '排序',
+              },
+            ].concat(listConfig)"
+            :key="titleItem.name + titleIndex"
+            class="titleItem"
+          >
+            <span>{{ titleItem.name }}</span>
+          </div>
+        </div>
+      </van-cell>
     </div>
     <div class="engineerTable">
       <!-- <van-cell>
@@ -206,6 +223,7 @@ function getList(params) {
               @click="engineerClick(listItem)"
             >
               <div class="cellBox">
+                <span class="cellItem" style="flex: 0.3 1 auto;">{{ listIndex + 1 }}</span>
                 <div
                   v-for="(configItem, configIndex) in listConfig"
                   :key="listIndex + configIndex"
@@ -350,6 +368,18 @@ function getList(params) {
         }
       }
     }
+    .listTitleBox {
+      background-color: var(--van-gray-2);
+      .listTitle {
+        display: grid;
+        grid-template-columns: 1fr 2fr 2fr 2fr 3fr 3fr;
+        .titleItem {
+          display: flex;
+          justify-content: center;
+          white-space: nowrap;
+        }
+      }
+    }
   }
 
   .engineerTable {
@@ -361,12 +391,12 @@ function getList(params) {
       flex: 1;
       overflow: hidden;
       .cellBox {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1fr 2fr 2fr 2fr 3fr 3fr;
         .cellItem {
-          flex: 1;
           display: flex;
+          justify-content: center;
+          white-space: nowrap;
           img {
             width: 35px;
             height: 35px;
