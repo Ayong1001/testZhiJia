@@ -299,7 +299,7 @@ function getList(params) {
 
   .serviceHeader {
     .row {
-      padding: 0 10px;
+      padding: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;

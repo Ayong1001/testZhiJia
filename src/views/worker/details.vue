@@ -1,6 +1,8 @@
 <script setup>
+import { showConfirmDialog, showNotify } from 'vant'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import moment from 'moment'
 import workTypeList from '@/utils/common/workTypeList'
 import request from '@/utils/request'
 import Screenshot1 from '@/assets/images/worker/Screenshot1.png'
@@ -12,14 +14,6 @@ const workerData = ref({})
 const historyList = ref([])
 const priceList = ref({})
 const active = ref(0)
-const alertDialog = ref(null)
-const alertConfig = ref({
-  msgType: '',
-  cancelText: '',
-  confirmText: '',
-  title: '',
-  content: '',
-})
 // 请求基本信息数据
 function getWorker() {
   request
@@ -60,7 +54,7 @@ function getPrices() {
     })
 }
 
-const dataList = [
+const baseMessageList = [
   {
     id: 'w_habitualResidenceCity',
     name: '地区',
@@ -71,7 +65,7 @@ const dataList = [
   },
   {
     id: 'w_completedQuantity',
-    name: '完工件数',
+    name: '完工次数',
   },
   {
     id: 'w_typeWork',
@@ -86,23 +80,6 @@ const dataList = [
     name: '等级',
   },
 ]
-// 联系师傅
-const inputDialog = ref(null)
-function dialogToggle(type) {
-  if (type === '联系师傅') {
-    inputDialog.value.open()
-  }
-  else if (type === '删除装修历史') {
-    alertConfig.value = {
-      msgType: 'error',
-      title: '警告',
-      content: '是否确定删除此记录？',
-      cancelText: '取消',
-      confirmText: '确定',
-    }
-    alertDialog.value.open()
-  }
-}
 
 // 编辑信息
 function editClick(type, data) {
@@ -368,13 +345,37 @@ function editClick(type, data) {
   })
 }
 // 编辑、删除按钮
-function btnClick(data) {
-  if (data.index === 0) {
-    editClick(4, data.name)
-  }
-  else if (data.index === 1) {
-    nowDelData = data
-    dialogToggle('删除装修历史')
+function btnClick(type, item) {
+  switch (type) {
+    case 'delHistory':
+      showConfirmDialog({
+        title: '警告',
+        message:
+    '删除此项后不可恢复，是否确认？',
+      })
+        .then(() => {
+          // on confirm
+          request.delete(
+            `/order/delete?o_id=${item.o_id}`,
+          ).then((res) => {
+            if (res.success === true) {
+              showNotify({ type: 'success', message: '删除成功!' })
+              setTimeout(() => {
+                getHistoryorder()
+              }, 500)
+            }
+            else {
+              showNotify({ type: 'danger', message: '删除失败!' })
+            }
+          })
+        })
+        .catch(() => {
+          // on cancel
+        })
+      break
+
+    default:
+      break
   }
 }
 
@@ -386,8 +387,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- <div v-if="workerData.w_id" class="userContainer"> -->
-  <div class="userContainer">
+  <div v-if="workerData.w_id" class="userContainer">
     <div class="top">
       <van-nav-bar
         title="详细信息"
@@ -396,10 +396,10 @@ onMounted(() => {
         @click-left="router.go(-1)"
       />
       <div class="userBox">
-        <van-card price="50.00" desc="" :thumb="Screenshot1">
+        <van-card :price="`${workerData.w_price}.00`" desc="" :thumb="workerData.w_picture ? workerData.w_picture : Screenshot1">
           <template #title>
             <div class="titleBox">
-              <span class="title">张师傅</span>
+              <span class="title">{{ workerData.w_name ? workerData.w_name : '* 先生' }}</span>
               <div class="workerType">
                 <van-tag plain type="primary">
                   瓦工
@@ -411,8 +411,8 @@ onMounted(() => {
             </div>
           </template>
           <template #desc>
-            <p>37岁/ 5年工龄/ 四川省成都市</p>
-            <p>累计完工：216 /次</p>
+            <p>{{ `${moment().year() - workerData.w_birthday?.split('-')[0]}岁 / ${workerData.w_seniority ?? '*'}年工龄 / ${workerData.w_habitualResidence ?? '*'}` }}</p>
+            <p>累计完工：{{ workerData.w_completedQuantity ?? '*' }} /次</p>
           </template>
           <template #bottom>
             /小时
@@ -434,7 +434,7 @@ onMounted(() => {
         <van-tab title="资料">
           <van-cell-group>
             <van-field
-              v-for="(item, index) in dataList"
+              v-for="(item, index) in baseMessageList"
               :key="index"
               :label="item.name"
               center
@@ -451,7 +451,7 @@ onMounted(() => {
                         : workerData[item.id] === 0
                           ? '银牌师傅'
                           : '铜牌师傅'
-                      : workerData[item.id]
+                      : workerData[item.id] ?? ''
                   }}
                 </span>
               </template>
@@ -461,49 +461,30 @@ onMounted(() => {
         <van-tab title="装修历史">
           <van-cell-group>
             <van-field
-              class="titleField"
               label="装修历史"
+              class="tabTitle"
               clickable
               readonly
             >
               <template #right-icon>
-                <span @click.stop="editClick(4)">
+                <span class="btnStyle" @click.stop="editClick(4)">
                   新增
                 </span>
               </template>
             </van-field>
-            <u-swipe-action
+            <van-swipe-cell
               v-for="(item, index) in historyList.slice(0, 4)"
               :key="index"
             >
-              <u-swipe-action-item
-                :key="item"
-                :name="item"
-                :options="[
-                  {
-                    span: '编辑',
-                    style: {
-                      backgroundColor: '#3c9cff',
-                    },
-                  },
-                  {
-                    span: '删除',
-                    style: {
-                      backgroundColor: '#f56c6c',
-                    },
-                  },
-                ]"
-                @click="btnClick"
-              >
-                <div class="swipe-action u-border-top">
-                  <van-cell>
-                    <div class="address">
-                      <img
-                        :src="`/static/c${index + 1}.png`"
-                        mode="scaleToFill"
-                      >
-                      <span>{{ item.o_address }}</span>
-                    </div>
+              <van-cell class="historyItem">
+                <div class="itemBox">
+                  <div class="left">
+                    <span>{{ index + 1 }}</span>
+                  </div>
+                  <div class="right">
+                    <p class="title">
+                      {{ item.o_address }}
+                    </p>
                     <div class="message">
                       <span>{{ item.o_date }}</span>
                       <span>{{ item.o_area }}</span>
@@ -518,67 +499,60 @@ onMounted(() => {
                                 : ''
                         }}
                       </span>
-                      <span>{{ item.o_price }}</span>
+                      <span>{{ item.o_price }}元/小时</span>
                     </div>
-                  </van-cell>
+                  </div>
                 </div>
-              </u-swipe-action-item>
-            </u-swipe-action>
+              </van-cell>
+              <template #right>
+                <van-button square type="danger" text="删除" @click.stop="btnClick('delHistory', item)" />
+                <van-button square type="primary" text="编辑" @click.stop="btnClick('ediHistory', item)" />
+              </template>
+            </van-swipe-cell>
           </van-cell-group>
         </van-tab>
         <van-tab title="参考价格">
           <van-cell-group>
-            <van-cell class="title1" title="参考价格" center>
+            <van-cell class="tabTitle" title="参考价格" center>
               <template #value>
-                <span class="editBtn2" @click.stop="editClick(3)">
+                <span class="btnStyle" @click.stop="editClick(3)">
                   编辑
                 </span>
               </template>
             </van-cell>
             <van-field
-              v-model="priceList.w_historyPrice"
               label="历史最低单价"
-              center
-              readonly
               colon
               clickable
-            />
+              label-width="100"
+            >
+              <template #input>
+                <span>{{ priceList.w_historyPrice }} 元/小时</span>
+              </template>
+            </van-field>
             <van-field
-              v-model="priceList.w_price"
               label="目前施工单价"
-              center
-              readonly
               colon
               clickable
-            />
+              label-width="100"
+            >
+              <template #input>
+                <span>{{ priceList.w_price }} 元/小时</span>
+              </template>
+            </van-field>
           </van-cell-group>
         </van-tab>
         <van-tab title="完工照片">
           <van-cell-group>
-            <van-cell class="title1" title="完工照片" center />
-            <van-cell>
-              <div class="imgBox" />
-            </van-cell>
+            <van-cell class="tabTitle" title="完工照片" center />
+            <van-empty description="暂无数据" />
           </van-cell-group>
         </van-tab>
-        <!-- <tab title="联系" class="tab tab1">
-            <van-cell-group>
-              <van-cell class="title1" title="联系师傅" center></van-cell>
-              <van-field
-                v-for="(item, index) in contactList"
-                v-model="workerData[item.id]"
-                :label="item.name"
-                center
-                readonly
-                colon
-                clickable
-                :key="index"
-              >
-              </van-field>
-            </van-cell-group>
-          </tab> -->
       </van-tabs>
     </div>
+  </div>
+  <div v-else class="userContainer">
+    <van-empty description="暂无数据" />
   </div>
 </template>
 
@@ -588,6 +562,7 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  justify-content: center;
 
   .top {
     width: 100%;
@@ -618,6 +593,46 @@ onMounted(() => {
   .bottom {
     flex: 1;
     overflow: auto;
+    .btnStyle {
+      color: var(--van-primary-color);
+    }
+    .historyItem {
+      .itemBox {
+        width: 100%;
+        text-align: start;
+        display: flex;
+        gap: 15px;
+        .left {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          span {
+            font-size: 18px;
+            font-family: fantasy;
+          }
+        }
+        .right {
+          flex: 1;
+          padding-right: 20px;
+          .title {
+            color: black;
+          }
+          .message {
+            display: flex;
+            justify-content: space-between;
+          }
+        }
+      }
+    }
+    .tabTitle {
+      font-weight: bold;
+      background-color: var(--van-gray-2);
+    }
+    :deep(.van-swipe-cell__right) {
+      .van-button {
+        height: 100%;
+      }
+    }
   }
 }
 </style>
