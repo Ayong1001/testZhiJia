@@ -1,19 +1,23 @@
-<script setup>
+<script lang="ts" setup>
 import { showConfirmDialog, showNotify } from 'vant'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import moment from 'moment'
 import workTypeList from '@/utils/common/workTypeList'
 import request from '@/utils/request'
+import type { FormType } from '@/types/formType'
 import Screenshot1 from '@/assets/images/worker/Screenshot1.png'
 
 const route = useRoute()
 const router = useRouter()
 
-const workerData = ref({})
+const workerData = ref()
 const historyList = ref([])
-const priceList = ref({})
+const priceList = ref()
 const active = ref(0)
+const pickerList = workTypeList.map((item) => {
+  return item.text
+})
 // 请求基本信息数据
 function getWorker() {
   request
@@ -82,10 +86,7 @@ const baseMessageList = [
 ]
 
 // 编辑信息
-function editClick(type, data) {
-  const pickerList = workTypeList.map((item) => {
-    return item.span
-  })
+function editClick(type, data?) {
   // 传入表单数据
   const formConfig1 = () => {
     return {
@@ -165,7 +166,7 @@ function editClick(type, data) {
           type: 'otherData',
           text: '工人id',
           code: 'w_id',
-          data: w_id,
+          data: route.query.w_id,
         },
       ],
       formRules: {
@@ -221,7 +222,7 @@ function editClick(type, data) {
       },
     }
   }
-  const formConfig2 = (data) => {
+  const formConfig2 = (data?) => {
     return {
       type: 'default',
       text: '装修历史',
@@ -283,7 +284,7 @@ function editClick(type, data) {
           type: 'otherData',
           text: '工人id',
           code: 'w_id',
-          data: w_id,
+          data: route.query.w_id,
         },
       ],
       request: data
@@ -318,7 +319,7 @@ function editClick(type, data) {
           type: 'otherData',
           text: '工人id',
           code: 'w_id',
-          data: w_id,
+          data: route.query.w_id,
         },
       ],
       request: {
@@ -327,7 +328,7 @@ function editClick(type, data) {
       },
     }
   }
-  let formConfig = {}
+  let formConfig: FormType
   if (type === 1)
     formConfig = formConfig1()
   else if (type === 2)
@@ -338,10 +339,11 @@ function editClick(type, data) {
     formConfig = formConfig2(data)
 
   // 带数据跳转信息编辑页
-  uni.navigateTo({
-    url: `/components/private/workerEdit/index?formConfig=${JSON.stringify(
-      formConfig,
-    )}`,
+  router.push({
+    name: 'editMessage',
+    query: {
+      formConfig: JSON.stringify(formConfig),
+    },
   })
 }
 // 编辑、删除按钮

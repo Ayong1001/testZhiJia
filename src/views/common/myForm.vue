@@ -1,25 +1,18 @@
-<script setup>
+<script lang="ts" setup>
 import { ref } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { useRoute, useRouter } from 'vue-router'
+import { showNotify } from 'vant'
 import request from '@/utils/request'
-import Form from '@/components/common/service/form'
+import type { FormType } from '@/types/formType'
+import Form from '@/components/common/form/index.vue'
 
-const formRef = ref(null)
-const formConfig = ref({}) // 表单配置
-onLoad((option) => {
-  formConfig.value = JSON.parse(decodeURIComponent(option.formConfig))
-})
-// 消息提示
-const popupRef = ref(null)
-const popupList = {
-  msgType: '',
-  messageText: '',
-}
-function messageToggle(type, text) {
-  popupList.msgType = type
-  popupList.messageText = text
-  popupRef.value.open()
-}
+const route = useRoute()
+const router = useRouter()
+
+const formConfig: FormType = JSON.parse(route.query.formConfig as string) // 表单配置
+
+const formRef = ref(null) // 表单实例
+
 function initItem(data) {
   return data.map((item) => {
     item.data = null
@@ -28,94 +21,82 @@ function initItem(data) {
 }
 // 若为折叠面板时
 const collapseValue = ['0']
-function operate(type, index) {
+function operate(type, index?) {
   if (type === 'add') {
-    if (formConfig.value.text === '装修历史' && formConfig.value.dataList.length > 2) {
-      messageToggle('error', '目前最多填加3条装修历史！')
+    if (formConfig.text === '装修历史' && formConfig.dataList.length > 2) {
+      showNotify('目前最多填加3条装修历史！')
       return
     }
-    if (formConfig.value.text === '施工动态' && formConfig.value.dataList.length > 9) {
-      messageToggle('error', '目前最多填加10条施工动态！')
+    if (formConfig.text === '施工动态' && formConfig.dataList.length > 9) {
+      showNotify('目前最多填加10条施工动态！')
       return
     }
-    formConfig.value.dataList.push(initItem(formConfig.value.dataList[0]))
+    formConfig.dataList.push(initItem(formConfig.dataList[0]))
   }
   else if (type === 'del') {
-    formConfig.value.dataList.splice(index, 1)
+    formConfig.dataList.splice(index, 1)
   }
 }
 function submit() {
-  if (formConfig.value.type === 'default') {
+  if (formConfig.type === 'default') {
     formRef.value.formRef
       .validate()
       .then(() => {
         request({
-          url: formConfig.value.request.url,
-          method: formConfig.value.request.methods,
+          url: formConfig.request.url,
+          method: formConfig.request.methods,
           data: { data: formRef.value.formSubmit() },
         }).then((res) => {
-          if (res.statusCode === 200) {
-            messageToggle('success', '提交成功!')
+          if (res.success === true) {
+            showNotify({ type: 'success', message: '提交成功!' })
             setTimeout(() => {
-              backPage()
+              router.go(-1)
             }, 500)
           }
           else {
-            messageToggle('error', '提交失败!')
+            showNotify('提交失败!')
           }
         })
       })
       .catch((err) => {
-        messageToggle('error', err[0].errorMessage)
+        showNotify(err[0].errorMessage)
       })
   }
-  else if (formConfig.value.type === 'collapse') {
+  else if (formConfig.type === 'collapse') {
     request({
-      url: formConfig.value.request.url,
-      method: formConfig.value.request.methods,
+      url: formConfig.request.url,
+      method: formConfig.request.methods,
       data: {
         data: formRef.value.map((item) => {
           return item.formSubmit()
         }),
       },
     }).then((res) => {
-      if (res.statusCode === 200) {
-        messageToggle('success', '提交成功!')
+      if (res.success === true) {
+        showNotify({ type: 'success', message: '提交成功!' })
         setTimeout(() => {
-          backPage()
+          router.go(-1)
         }, 500)
       }
       else {
-        messageToggle('error', '提交失败!')
+        showNotify('提交失败!')
       }
     })
   }
-}
-// 返回页面
-function backPage() {
-  uni.navigateBack({
-    success: () => {
-      uni.$emit('refresh')
-    },
-  })
 }
 </script>
 
 <template>
   <div class="main">
-    <div class="addTitle">
-      <div class="addTitleLeft">
-        <img src="/static/alicon/right.svg" mode="aspectFit" @click="backPage">
-      </div>
-      <div class="addTitleCenter">
-        <text>编辑信息</text>
-      </div>
-    </div>
-    <uni-section v-if="formConfig.type === 'default'" :title="formConfig.text" type="line">
-      <Form ref="formRef" :list="formConfig.dataList" :form-rules="formConfig.formRules" />
-    </uni-section>
+    <van-nav-bar
+      title="编辑信息"
+      left-text=""
+      left-arrow
+      @click-left="router.go(-1)"
+    />
+    <Form v-if="formConfig.type === 'default'" ref="formRef" :list="formConfig.dataList" :form-rules="formConfig.formRules" />
     <uni-section v-if="formConfig.type === 'collapse'" :title="formConfig.text" type="line">
-      <uni-collapse v-model="collapseValue" accordion @change="collapseChange">
+      <uni-collapse v-model="collapseValue" accordion>
         <uni-collapse-item
           v-for="(collapseItem, collapseIndex) in formConfig.dataList"
           :key="collapseIndex"
@@ -123,7 +104,7 @@ function backPage() {
           <template #title>
             <uni-list>
               <uni-list-item :title="`装修历史-${collapseIndex + 1}`">
-                <template v-if="formConfig?.readOnly !== true" #footer>
+                <template v-if="collapseItem?.readonly !== true" #footer>
                   <text class="delBtn" @click.stop="operate('del', collapseIndex)">
                     删除
                   </text>
@@ -133,33 +114,24 @@ function backPage() {
           </template>
           <Form
             ref="formRef"
-            :key="collapseItem"
-            :list="collapseItem"
+            :key="collapseItem.code"
+            :list="[collapseItem]"
             :form-rules="formConfig.formRules"
           />
         </uni-collapse-item>
       </uni-collapse>
-      <button
-        v-if="formConfig?.readOnly !== true"
+      <van-button
         size="mini"
         type="primary"
         class="addBtn"
         @click.stop="operate('add')"
       >
         新增{{ formConfig.text }}
-      </button>
+      </van-button>
     </uni-section>
     <button class="formSubmit" @click="submit">
       提交
     </button>
-    <!-- 提示信息弹窗 -->
-    <uni-popup ref="popupRef" type="message">
-      <uni-popup-message
-        :type="popupList.msgType"
-        :message="popupList.messageText"
-        :duration="2000"
-      />
-    </uni-popup>
   </div>
 </template>
 

@@ -2,6 +2,7 @@
 import { reactive, ref } from 'vue'
 import { areaList } from '@vant/area-data'
 import { showDialog, showNotify } from 'vant'
+import moment from 'moment'
 import request from '@/utils/request'
 import addImg from '@/assets/images/add/addUser.svg'
 import workTypeList from '@/utils/common/workTypeList'
@@ -86,7 +87,7 @@ function onConfirm(e) {
   pickers.isShow = false
 }
 // 默认选择时间
-const defaultBirthday = ['2000', '01', '01']
+const defaultBirthday = [(moment().year() - 30).toString(), '06', '01']
 // 添加页面切换
 function changeAddState() {
   formData.value = JSON.parse(JSON.stringify(baseFormData))
@@ -121,7 +122,7 @@ function formSubmit() {
 
 <template>
   <div class="pageBox">
-    <div v-if="addState" class="btnBox" @click="changeAddState">
+    <div v-if="!addState" class="btnBox" @click="changeAddState">
       <img class="addImg" :src="addImg" alt="">
       <p style="text-align: center;">
         添 加 新 工 人

@@ -8,6 +8,19 @@ NProgress.configure({ showSpinner: true, parent: '#app' })
 // 定义路由，每个路由都需要映射到一个组件
 const routes = [
   {
+    path: '/common',
+    name: 'common',
+    component: () => import('@/views/common/default.vue'),
+    redirect: () => 'common/editMessage',
+    children: [
+      {
+        path: 'editMessage',
+        name: 'editMessage',
+        component: () => import('@/views/common/myForm.vue'),
+      },
+    ],
+  },
+  {
     path: '/worker',
     name: 'worker',
     component: () => import('@/views/common/default.vue'),
