@@ -94,110 +94,69 @@ function submit() {
       left-arrow
       @click-left="router.go(-1)"
     />
-    <Form v-if="formConfig.type === 'default'" ref="formRef" :list="formConfig.dataList" :form-rules="formConfig.formRules" />
-    <uni-section v-if="formConfig.type === 'collapse'" :title="formConfig.text" type="line">
-      <uni-collapse v-model="collapseValue" accordion>
-        <uni-collapse-item
-          v-for="(collapseItem, collapseIndex) in formConfig.dataList"
-          :key="collapseIndex"
+    <div class="formBox">
+      <Form v-if="formConfig.type === 'default'" ref="formRef" :list="formConfig.dataList" :form-rules="formConfig.formRules" />
+      <uni-section v-if="formConfig.type === 'collapse'" :title="formConfig.text" type="line">
+        <uni-collapse v-model="collapseValue" accordion>
+          <uni-collapse-item
+            v-for="(collapseItem, collapseIndex) in formConfig.dataList"
+            :key="collapseIndex"
+          >
+            <template #title>
+              <uni-list>
+                <uni-list-item :title="`装修历史-${collapseIndex + 1}`">
+                  <template v-if="collapseItem?.readonly !== true" #footer>
+                    <text class="delBtn" @click.stop="operate('del', collapseIndex)">
+                      删除
+                    </text>
+                  </template>
+                </uni-list-item>
+              </uni-list>
+            </template>
+            <Form
+              ref="formRef"
+              :key="collapseItem.code"
+              :list="[collapseItem]"
+              :form-rules="formConfig.formRules"
+            />
+          </uni-collapse-item>
+        </uni-collapse>
+        <van-button
+          size="mini"
+          type="primary"
+          class="addBtn"
+          @click.stop="operate('add')"
         >
-          <template #title>
-            <uni-list>
-              <uni-list-item :title="`装修历史-${collapseIndex + 1}`">
-                <template v-if="collapseItem?.readonly !== true" #footer>
-                  <text class="delBtn" @click.stop="operate('del', collapseIndex)">
-                    删除
-                  </text>
-                </template>
-              </uni-list-item>
-            </uni-list>
-          </template>
-          <Form
-            ref="formRef"
-            :key="collapseItem.code"
-            :list="[collapseItem]"
-            :form-rules="formConfig.formRules"
-          />
-        </uni-collapse-item>
-      </uni-collapse>
-      <van-button
-        size="mini"
-        type="primary"
-        class="addBtn"
-        @click.stop="operate('add')"
-      >
-        新增{{ formConfig.text }}
+          新增{{ formConfig.text }}
+        </van-button>
+      </uni-section>
+    </div>
+    <div class="btnBox">
+      <van-button round size="large" type="primary" @click="submit">
+        提 交
       </van-button>
-    </uni-section>
-    <button class="formSubmit" @click="submit">
-      提交
-    </button>
+    </div>
   </div>
 </template>
 
 <style lang="less" scoped>
 .main {
   width: 100%;
-  .backImgBox {
-    box-sizing: border-box;
-    padding: 20rpx;
-    background-color: #fff;
-    .backImg {
-      width: 50rpx;
-      height: 50rpx;
-      object-fit: cover;
-      opacity: 1;
-      transform: rotate(180deg);
-    }
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  .formBox {
+    flex: 1;
+    padding-top: 20px;
+    padding-bottom: 120px;
   }
-  .addTitle {
-    height: 120rpx;
-    padding: 0 20rpx;
-    position: relative;
-    font-size: 36rpx;
-    background-color: #fff;
-    // border-bottom: 2rpx #dadada solid;
-    display: flex;
-    align-items: center;
-
-    .addTitleLeft {
-      display: flex;
-      align-items: center;
-
-      img {
-        width: 50rpx;
-        height: 50rpx;
-        object-fit: cover;
-        transform: rotate(180deg);
-      }
-    }
-
-    .addTitleCenter {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-  }
-  .formSubmit {
-    width: 100%;
-    height: 100rpx;
-    margin: 40rpx auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .delBtn {
-    color: #e43d33;
-  }
-  .addBtn {
-    margin: auto;
-    margin: 20rpx 0;
-  }
-  ::v-deep .uni-section-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  .btnBox {
+    position: absolute;
+    width: 80%;
+    left: 50%;
+    bottom: 50px;
+    transform: translate(-50%, 0);
   }
 }
 </style>

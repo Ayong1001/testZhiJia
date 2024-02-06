@@ -19,7 +19,7 @@ interface DataList {
   dataConfig?: {
     type?: string
     dataList?: any[]
-    dataListText?: string
+    chooseType?: string
   }
 }
 

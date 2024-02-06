@@ -18,8 +18,9 @@ const active = ref(0)
 const pickerList = workTypeList.map((item) => {
   return item.text
 })
-// 请求基本信息数据
+
 function getWorker() {
+  // 请求基本信息数据
   request
     .get('/worker/id', {
       params: {
@@ -141,7 +142,6 @@ function editClick(type, data?) {
                 text: '银牌师傅',
               },
             ],
-            dataListText: 'text',
           },
         },
         {
@@ -307,13 +307,13 @@ function editClick(type, data?) {
           type: 'input',
           text: '历史最低单价',
           code: 'w_historyPrice',
-          data: priceList.value.w_historyPrice,
+          data: priceList.value?.w_historyPrice || null,
         },
         {
           type: 'input',
           text: '目前施工单价',
           code: 'w_price',
-          data: priceList.value.w_price,
+          data: priceList.value?.w_price || null,
         },
         {
           type: 'otherData',
@@ -389,7 +389,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="workerData.w_id" class="userContainer">
+  <div v-if="workerData?.w_id" class="userContainer">
     <div class="top">
       <van-nav-bar
         title="详细信息"
@@ -402,19 +402,16 @@ onMounted(() => {
           <template #title>
             <div class="titleBox">
               <span class="title">{{ workerData.w_name ? workerData.w_name : '* 先生' }}</span>
-              <div class="workerType">
+              <div v-if="workerData?.w_typeWork" class="workerType">
                 <van-tag plain type="primary">
-                  瓦工
-                </van-tag>
-                <van-tag plain type="primary">
-                  木工
+                  {{ workerData.w_typeWork }}
                 </van-tag>
               </div>
             </div>
           </template>
           <template #desc>
-            <p>{{ `${moment().year() - workerData.w_birthday?.split('-')[0]}岁 / ${workerData.w_seniority ?? '*'}年工龄 / ${workerData.w_habitualResidence ?? '*'}` }}</p>
-            <p>累计完工：{{ workerData.w_completedQuantity ?? '*' }} /次</p>
+            <p>{{ `${moment().year() - workerData.w_birthday?.split('-')[0]}岁 / ${workerData.w_seniority || '*'}年工龄 / ${workerData.w_habitualResidence || '*'}` }}</p>
+            <p>累计完工：{{ workerData.w_completedQuantity || '*' }} /次</p>
           </template>
           <template #bottom>
             /小时
@@ -488,8 +485,8 @@ onMounted(() => {
                       {{ item.o_address }}
                     </p>
                     <div class="message">
-                      <span>{{ item.o_date }}</span>
-                      <span>{{ item.o_area }}</span>
+                      <span>{{ item?.o_date || '*' }}</span>
+                      <span>{{ item?.o_area || '*' }}</span>
                       <span>
                         {{
                           item.o_garde === 0
@@ -501,7 +498,7 @@ onMounted(() => {
                                 : ''
                         }}
                       </span>
-                      <span>{{ item.o_price }}元/小时</span>
+                      <span>{{ item?.o_price || '*' }}元/小时</span>
                     </div>
                   </div>
                 </div>
@@ -529,7 +526,7 @@ onMounted(() => {
               label-width="100"
             >
               <template #input>
-                <span>{{ priceList.w_historyPrice }} 元/小时</span>
+                <span>{{ priceList?.w_historyPrice || '*' }} 元/小时</span>
               </template>
             </van-field>
             <van-field
@@ -539,7 +536,7 @@ onMounted(() => {
               label-width="100"
             >
               <template #input>
-                <span>{{ priceList.w_price }} 元/小时</span>
+                <span>{{ priceList?.w_price || '*' }} 元/小时</span>
               </template>
             </van-field>
           </van-cell-group>
