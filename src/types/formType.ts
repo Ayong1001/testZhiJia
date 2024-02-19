@@ -1,8 +1,9 @@
+import type { FieldRule } from 'vant'
+
 interface FormType {
   type: string
   text: string
   dataList: DataList[]
-  formRules?: object
   request: {
     url: string
     methods: string
@@ -14,6 +15,8 @@ interface DataList {
   text: string
   code: string
   data: any
+  required?: boolean
+  rules?: FieldRule[]
   disabled?: boolean
   readonly?: boolean
   dataConfig?: {

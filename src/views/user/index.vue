@@ -1,9 +1,5 @@
 <script lang="ts" setup>
-import { useRouter } from 'vue-router'
-import { useStore } from '@/stores'
-
-const router = useRouter()
-const store = useStore()
+import { outLogin } from '@/utils/hooks/login'
 
 const orderUserList = [
   {
@@ -41,15 +37,6 @@ const toolUserList = [
     imgUrl: new URL('@/assets/images/user/file.svg', import.meta.url).href,
   },
 ]
-
-// 退出登录
-function outLogin() {
-  localStorage.removeItem('u_token')
-  localStorage.removeItem('u_account')
-  store.token = ''
-  store.account = {}
-  router.replace({ name: 'loginMain' })
-}
 </script>
 
 <template>
@@ -149,13 +136,13 @@ function outLogin() {
       align-items: center;
 
       img {
-        width: 40px;
-        height: 40px;
+        width: 30px;
+        height: 30px;
         margin-bottom: 10px;
       }
 
       text {
-        font-size: 16px;
+        font-size: 14px;
       }
     }
   }

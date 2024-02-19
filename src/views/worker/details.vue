@@ -3,7 +3,6 @@ import { showConfirmDialog, showNotify } from 'vant'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import moment from 'moment'
-import workTypeList from '@/utils/common/workTypeList'
 import request from '@/utils/request'
 import type { FormType } from '@/types/formType'
 import Screenshot1 from '@/assets/images/worker/Screenshot1.png'
@@ -15,9 +14,6 @@ const workerData = ref()
 const historyList = ref([])
 const priceList = ref()
 const active = ref(0)
-const pickerList = workTypeList.map((item) => {
-  return item.text
-})
 
 function getWorker() {
   // 请求基本信息数据
@@ -61,7 +57,7 @@ function getPrices() {
 
 const baseMessageList = [
   {
-    id: 'w_habitualResidenceCity',
+    id: 'w_habitualResidence',
     name: '地区',
   },
   {
@@ -96,23 +92,46 @@ function editClick(type, data?) {
       dataList: [
         {
           type: 'input',
-          text: '工人姓名',
+          text: '姓名',
           code: 'w_name',
+          required: true,
+          rules: [{ required: true, message: '请填写姓名' }, { pattern: /^.{2,8}$/, message: '姓名长度在 2 到 8 个字符' }],
           data: workerData.value.w_name,
         },
         {
           type: 'picker',
-          text: '工种',
-          code: 'w_typeWork',
-          data: workerData.value.w_typeWork,
+          text: '性别',
+          code: 'w_sex',
+          required: true,
+          rules: [{ required: true, message: '请选择性别' }],
+          data: workerData.value.w_sex,
           dataConfig: {
-            dataList: pickerList,
+            dataList: [{ text: '男', value: 1 }, { text: '女', value: 0 }],
+            chooseType: 'value',
           },
         },
         {
-          type: 'datePicker',
+          type: 'picker_typeWork',
+          text: '工种',
+          code: 'w_typeWork',
+          required: true,
+          rules: [{ required: true, message: '请选择工种' }],
+          data: workerData.value.w_typeWork,
+        },
+        {
+          type: 'picker_country',
+          text: '国籍',
+          code: 'w_nationality',
+          required: true,
+          rules: [{ required: true, message: '请选择国籍' }],
+          data: workerData.value.w_nationality,
+        },
+        {
+          type: 'picker_date',
           text: '出生日期',
           code: 'w_birthday',
+          required: true,
+          rules: [{ required: true, message: '请选择工种' }],
           data: workerData.value.w_birthday,
         },
         {
@@ -120,7 +139,6 @@ function editClick(type, data?) {
           text: '工龄',
           code: 'w_seniority',
           data: workerData.value.w_seniority,
-          disabled: true,
         },
         {
           type: 'picker',
@@ -142,6 +160,7 @@ function editClick(type, data?) {
                 text: '银牌师傅',
               },
             ],
+            chooseType: 'value',
           },
         },
         {
@@ -157,10 +176,12 @@ function editClick(type, data?) {
           data: workerData.value.w_price,
         },
         {
-          type: 'addressPicker',
+          type: 'picker_address',
           text: '所在地区',
-          code: 'w_habitualResidenceCity',
-          data: workerData.value.w_habitualResidenceCity,
+          code: 'w_habitualResidence',
+          required: true,
+          rules: [{ required: true, message: '请选择工种' }],
+          data: workerData.value.w_habitualResidence,
         },
         {
           type: 'otherData',
@@ -170,20 +191,6 @@ function editClick(type, data?) {
         },
       ],
       formRules: {
-        // 对name字段进行必填验证
-        w_name: {
-          rules: [
-            {
-              required: true,
-              errorMessage: '请输入姓名',
-            },
-            {
-              minLength: 2,
-              maxLength: 8,
-              errorMessage: '姓名长度在 {minLength} 到 {maxLength} 个字符',
-            },
-          ],
-        },
         // 对性别进行验证
         w_sex: {
           rules: [
@@ -234,7 +241,7 @@ function editClick(type, data?) {
           data: data?.o_address || null,
         },
         {
-          type: 'datePicker',
+          type: 'picker_date',
           text: '施工年份',
           code: 'o_date',
           data: data?.o_date || null,
@@ -265,7 +272,7 @@ function editClick(type, data?) {
                 text: '银牌师傅',
               },
             ],
-            dataListText: 'text',
+            chooseType: 'value',
           },
         },
         {
@@ -329,15 +336,22 @@ function editClick(type, data?) {
     }
   }
   let formConfig: FormType
-  if (type === 1)
-    formConfig = formConfig1()
-  else if (type === 2)
-    formConfig = formConfig2()
-  else if (type === 3)
-    formConfig = formConfig3()
-  else if (type === 4)
-    formConfig = formConfig2(data)
-
+  switch (type) {
+    case 1:
+      formConfig = formConfig1()
+      break
+    case 2:
+      formConfig = formConfig2()
+      break
+    case 3:
+      formConfig = formConfig3()
+      break
+    case 4:
+      formConfig = formConfig2(data)
+      break
+    default:
+      break
+  }
   // 带数据跳转信息编辑页
   router.push({
     name: 'editMessage',
@@ -375,7 +389,6 @@ function btnClick(type, item) {
           // on cancel
         })
       break
-
     default:
       break
   }
@@ -401,23 +414,23 @@ onMounted(() => {
         <van-card :price="`${workerData.w_price}.00`" desc="" :thumb="workerData.w_picture ? workerData.w_picture : Screenshot1">
           <template #title>
             <div class="titleBox">
-              <span class="title">{{ workerData.w_name ? workerData.w_name : '* 先生' }}</span>
-              <div v-if="workerData?.w_typeWork" class="workerType">
-                <van-tag plain type="primary">
-                  {{ workerData.w_typeWork }}
-                </van-tag>
-              </div>
+              <span class="title">{{ workerData.w_name ? workerData.w_name.length < 4 ? workerData.w_name?.slice(0, 1) : workerData.w_name?.slice(0, 2)
+                : '* ' }}{{ workerData.w_sex === 1 ? '先生' : '女士' }}</span>
+              <van-icon name="weapp-nav" @click.stop="editClick(1)" />
             </div>
           </template>
           <template #desc>
-            <p>{{ `${moment().year() - workerData.w_birthday?.split('-')[0]}岁 / ${workerData.w_seniority || '*'}年工龄 / ${workerData.w_habitualResidence || '*'}` }}</p>
+            <p>{{ `${moment().year() - workerData.w_birthday?.split('-')[0]}岁 / ${workerData.w_seniority || '*'}年工龄 / ${workerData.w_habitualResidenceCity || '*'}` }}</p>
+            <div v-if="workerData?.w_typeWork" class="workerType">
+              <span>工种：</span>
+              <van-tag plain type="primary">
+                {{ workerData.w_typeWork }}
+              </van-tag>
+            </div>
             <p>累计完工：{{ workerData.w_completedQuantity || '*' }} /次</p>
           </template>
           <template #bottom>
             /小时
-          </template>
-          <template #footer>
-            <van-icon name="weapp-nav" />
           </template>
         </van-card>
       </div>
@@ -428,7 +441,7 @@ onMounted(() => {
         sticky
         scrollspy
         background="var(--van-gray-2)"
-        offset-top="174px"
+        offset-top="163px"
       >
         <van-tab title="资料">
           <van-cell-group>
@@ -466,13 +479,13 @@ onMounted(() => {
               readonly
             >
               <template #right-icon>
-                <span class="btnStyle" @click.stop="editClick(4)">
+                <span class="btnStyle" @click.stop="editClick(2)">
                   新增
                 </span>
               </template>
             </van-field>
             <van-swipe-cell
-              v-for="(item, index) in historyList.slice(0, 4)"
+              v-for="(item, index) in historyList?.slice(0, 4)"
               :key="index"
             >
               <van-cell class="historyItem">
@@ -505,7 +518,7 @@ onMounted(() => {
               </van-cell>
               <template #right>
                 <van-button square type="danger" text="删除" @click.stop="btnClick('delHistory', item)" />
-                <van-button square type="primary" text="编辑" @click.stop="btnClick('ediHistory', item)" />
+                <van-button square type="primary" text="编辑" @click.stop="editClick(4, item)" />
               </template>
             </van-swipe-cell>
           </van-cell-group>

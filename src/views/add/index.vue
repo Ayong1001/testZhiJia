@@ -204,6 +204,7 @@ function formSubmit() {
               name="w_typeWork"
               label="工种"
               placeholder="点击选择工种"
+              required
               @click="pickers.showCode = 'w_typeWork';pickers.isShow = true"
             />
             <van-field
@@ -224,6 +225,7 @@ function formSubmit() {
               name="w_nationality"
               label="国籍"
               placeholder="点击选择国籍"
+              required
               @click="pickers.showCode = 'w_nationality';pickers.isShow = true"
             />
           </van-cell-group>
@@ -304,7 +306,7 @@ function formSubmit() {
               placeholder="紧急联系电话"
             />
           </van-cell-group>
-          <van-button class="formSubmit" @click="formSubmit">
+          <van-button round type="primary" class="formSubmit" @click="formSubmit">
             提 交
           </van-button>
         </van-form>
@@ -339,7 +341,7 @@ function formSubmit() {
       <van-date-picker
         v-if="pickers.showCode === 'w_birthday'"
         v-model="defaultBirthday"
-        :min-date="new Date(1900, 0, 1)"
+        :min-date="new Date((moment().year() - 150), 0, 1)"
         :max-date="new Date()"
         title="选择日期"
         @confirm="onConfirm"
@@ -387,8 +389,8 @@ function formSubmit() {
         margin-bottom: 15px;
       }
       .formSubmit {
-        width: 100px;
-        margin-bottom: 20px;
+        width: 80%;
+        margin: 20px 0 30px 0;
         left: 50%;
         transform: translate(-50%, 0);
       }

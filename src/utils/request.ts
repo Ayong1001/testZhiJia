@@ -3,6 +3,7 @@ import axios from 'axios'
 import { showNotify } from 'vant'
 import { localStorage } from '@/utils/local-storage'
 import { STORAGE_TOKEN_KEY } from '@/stores/mutation-type'
+import { outLogin } from '@/utils/hooks/login'
 
 // 这里是用于设定请求后端时，所用的 Token KEY
 // 可以根据自己的需要修改，常见的如 Access-Token，Authorization
@@ -56,10 +57,10 @@ function errorHandler(error: RequestError): Promise<any> {
     if (status === 401 && data.result && data.result.isLogin) {
       showNotify({
         type: 'danger',
-        message: 'Authorization verification failed',
+        message: '登录状态异常！',
       })
       // 如果你需要直接跳转登录页面
-      // location.replace(loginRoutePath)
+      outLogin()
     }
   }
   return Promise.reject(error)
@@ -71,7 +72,7 @@ function requestHandler(config: InternalAxiosRequestConfig): InternalAxiosReques
   // 如果 token 存在
   // 让每个请求携带自定义 token, 请根据实际情况修改
   if (savedToken)
-    config.headers[REQUEST_TOKEN_KEY] = savedToken
+    config.headers[REQUEST_TOKEN_KEY] = `Bearer ${savedToken}`
 
   return config
 }
