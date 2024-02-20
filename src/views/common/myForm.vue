@@ -11,17 +11,17 @@ const router = useRouter()
 
 const formConfig: FormType = JSON.parse(route.query.formConfig as string) // 表单配置
 
-const formRef = ref(null) // 表单实例
+const myForm = ref(null) // 表单实例
 
 function submit() {
   if (formConfig.type === 'default') {
-    formRef.value.formRef
+    myForm.value.formRef
       .validate()
       .then(() => {
         request({
           url: formConfig.request.url,
           method: formConfig.request.methods,
-          data: formRef.value.formSubmit(),
+          data: myForm.value.formData,
         }).then((res) => {
           if (res.success === true) {
             showNotify({ type: 'success', message: '提交成功!' })
@@ -33,9 +33,6 @@ function submit() {
             showNotify('提交失败!')
           }
         })
-      })
-      .catch((err) => {
-        showNotify(err[0].errorMessage)
       })
   }
 }
@@ -54,7 +51,7 @@ function submit() {
         <p class="title">
           {{ formConfig.text }}
         </p>
-        <Form ref="formRef" :list="formConfig.dataList" />
+        <Form ref="myForm" :list="formConfig.dataList" />
       </div>
     </div>
     <div class="btnBox">

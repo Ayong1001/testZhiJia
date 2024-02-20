@@ -151,8 +151,7 @@ function formSubmit() {
               label="姓名"
               placeholder="姓名"
               required
-              :rules="[{ required: true, message: '请填写姓名' },
-                       { pattern: /^.{2,8}$/, message: '姓名长度在 2 到 8 个字符' }]"
+              :rules="[{ required: true, message: '请填写姓名' }, { pattern: /^.{2,8}$/, message: '姓名长度在 2 到 8 个字符' }]"
             />
             <van-field
               v-model.number="formData.w_sex"
@@ -175,8 +174,7 @@ function formSubmit() {
               label="联系电话"
               placeholder="联系电话"
               required
-              :rules="[{ required: true, message: '请填写联系电话' },
-                       { pattern: /^(?:(?:\+|00)86)?1[3-9]\d{9}$/, message: '请填写正确的手机号' }]"
+              :rules="[{ required: true, message: '请填写联系电话' }, { pattern: /^(?:(?:\+|00)86)?1[3-9]\d{9}$/, message: '请填写正确的手机号' }]"
             />
             <van-field
               v-model.number="formData.w_idType"

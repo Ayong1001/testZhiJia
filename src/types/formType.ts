@@ -16,7 +16,7 @@ interface DataList {
   code: string
   data: any
   required?: boolean
-  rules?: FieldRule[]
+  rules?: Omit<FieldRule, 'pattern'>[] & { pattern?: RegExp | string }[]
   disabled?: boolean
   readonly?: boolean
   dataConfig?: {

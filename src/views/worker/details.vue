@@ -95,18 +95,17 @@ function editClick(type, data?) {
           text: '姓名',
           code: 'w_name',
           required: true,
-          rules: [{ required: true, message: '请填写姓名' }, { pattern: /^.{2,8}$/, message: '姓名长度在 2 到 8 个字符' }],
+          rules: [{ required: true, message: '请填写姓名' }, { pattern: '^.{2,8}$', message: '姓名长度在 2 到 8 个字符' }],
           data: workerData.value.w_name,
         },
         {
-          type: 'picker',
+          type: 'picker_sex',
           text: '性别',
           code: 'w_sex',
           required: true,
           rules: [{ required: true, message: '请选择性别' }],
           data: workerData.value.w_sex,
           dataConfig: {
-            dataList: [{ text: '男', value: 1 }, { text: '女', value: 0 }],
             chooseType: 'value',
           },
         },
@@ -180,7 +179,7 @@ function editClick(type, data?) {
           text: '所在地区',
           code: 'w_habitualResidence',
           required: true,
-          rules: [{ required: true, message: '请选择工种' }],
+          rules: [{ required: true, message: '请选择所在地区' }],
           data: workerData.value.w_habitualResidence,
         },
         {
@@ -190,39 +189,6 @@ function editClick(type, data?) {
           data: route.query.w_id,
         },
       ],
-      formRules: {
-        // 对性别进行验证
-        w_sex: {
-          rules: [
-            {
-              required: true,
-              errorMessage: '请选择性别',
-            },
-          ],
-        },
-        // 对手机号码进行验证
-        w_phone: {
-          rules: [
-            {
-              required: true,
-              errorMessage: '请输入手机号码',
-            },
-            {
-              pattern: '^1[3-9]\\d{9}$',
-              errorMessage: '请输入正确的手机号码',
-            },
-          ],
-        },
-        // 对常住地进行验证
-        w_habitualResidenceCity: {
-          rules: [
-            {
-              required: true,
-              errorMessage: '请填写常住地',
-            },
-          ],
-        },
-      },
       request: {
         url: '/worker/update',
         methods: 'PUT',
@@ -239,18 +205,24 @@ function editClick(type, data?) {
           text: '施工项目',
           code: 'o_address',
           data: data?.o_address || null,
+          required: true,
+          rules: [{ required: true, message: '请填写施工项目名' }],
         },
         {
           type: 'picker_date',
           text: '施工年份',
           code: 'o_date',
           data: data?.o_date || null,
+          required: true,
+          rules: [{ required: true, message: '请选择施工年份' }],
         },
         {
           type: 'input',
           text: '施工所在地区',
           code: 'o_area',
           data: data?.o_area || null,
+          required: true,
+          rules: [{ required: true, message: '请填写施工所在地区' }],
         },
         {
           type: 'picker',
@@ -274,12 +246,16 @@ function editClick(type, data?) {
             ],
             chooseType: 'value',
           },
+          required: true,
+          rules: [{ required: true, message: '请选择师傅等级' }],
         },
         {
           type: 'input',
           text: '施工价格',
           code: 'o_price',
           data: data?.o_price || null,
+          required: true,
+          rules: [{ required: true, message: '请填写施工价格' }],
         },
         {
           type: 'otherData',

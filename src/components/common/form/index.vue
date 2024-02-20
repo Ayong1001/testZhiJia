@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { areaList } from '@vant/area-data'
 import moment from 'moment'
 import workTypeList from '@/utils/common/workTypeList'
@@ -17,10 +17,16 @@ const list: DataList[] = props.list as unknown as DataList[]
 function initializationFrom() {
   list.forEach((item: any) => {
     formData[item.code] = item.data ?? null
+    if (item.rules) {
+      item.rules.forEach((ruleItem: any) => {
+        if (ruleItem.pattern)
+          ruleItem.pattern = new RegExp(ruleItem.pattern)
+      })
+    }
   })
 }
 // 选择器配置
-// 基础参数配置
+// 选择器基础参数配置
 const pickers = reactive({
   type: 'picker',
   isShow: false,
@@ -28,41 +34,52 @@ const pickers = reactive({
   columns: [],
   chooseType: 'text',
 })
+// 基本选项参数
+const defaultColumns = {
+  picker_typeWork: workTypeList,
+  picker_country: countryList.map((item) => {
+    return { value: item.country_id, text: item.country_name_cn }
+  }),
+  picker_sex: [{ text: '男', value: 1 }, { text: '女', value: 0 }],
+}
+const pickerModel = computed(() => {
+  return [pickers.chooseType === 'value'
+    ? formData[pickers.showCode]
+    : pickers.columns.length
+      ? pickers.columns.find((item) => {
+        return item.text === formData[pickers.showCode]
+      })?.value
+      : defaultColumns[pickers.type]?.find((item) => {
+        return item.text === formData[pickers.showCode]
+      })?.value]
+})
 // 日期配置选择
 const defaultBirthday = [(moment().year() - 30).toString(), '06', '01']
 // 默认选择器
 function pickerClick(item) {
+  pickers.columns = item?.dataConfig?.dataList ?? []
   pickers.chooseType = item?.dataConfig?.chooseType ?? 'text'
-  pickers.columns = item?.dataConfig?.dataList
   pickers.type = item.type
   pickers.showCode = item.code
   pickers.isShow = true
 }
 function onConfirm(e) {
   switch (pickers.type) {
-    case 'picker':
-      formData[pickers.showCode] = e.selectedOptions[0][pickers.chooseType]
-      break
     case 'picker_date':
     case 'picker_address':
       formData[pickers.showCode] = e.selectedOptions.map((item: any) => {
         return item[pickers.chooseType]
       }).join('-')
       break
-
     default:
+      formData[pickers.showCode] = e.selectedOptions[0][pickers.chooseType]
       break
   }
   pickers.isShow = false
 }
 
-// 返回数据
-function formSubmit() {
-  return formData
-}
-
 defineExpose({
-  formSubmit,
+  formData,
   formRef,
 })
 
@@ -89,6 +106,7 @@ onMounted(() => {
           />
           <van-field
             v-if="item.type.includes('picker')"
+            v-model="formData[item.code]"
             is-link
             readonly
             colon
@@ -100,8 +118,10 @@ onMounted(() => {
             @click="pickerClick(item)"
           >
             <template #input>
-              <span v-if="formData[item.code] !== null">{{ item?.dataConfig?.chooseType === 'value' ? item?.dataConfig?.dataList?.find(listItem => {
-                return listItem.value === formData[item.code]
+              <span v-if="formData[item.code] !== null">{{ item?.dataConfig?.chooseType === 'value' ? item?.dataConfig?.dataList ? item.dataConfig.dataList.find((listItem: any) => {
+                return listItem.value.toString() === formData[item.code]
+              })?.text : defaultColumns.picker_sex?.find((columnsItem: any) => {
+                return columnsItem.value.toString() === formData[item.code]
               })?.text : formData[item.code] }}</span>
               <span v-else style="color: var(--van-text-color-3);">{{ `请输入${item.text}` }}</span>
             </template>
@@ -111,26 +131,6 @@ onMounted(() => {
     </van-form>
     <!-- 选择器弹窗 -->
     <van-popup v-model:show="pickers.isShow" position="bottom">
-      <van-picker
-        v-if="pickers.type === 'picker'"
-        :columns="pickers.columns"
-        @confirm="onConfirm"
-        @cancel="pickers.isShow = false"
-      />
-      <van-picker
-        v-if="pickers.type === 'picker_typeWork'"
-        :columns="workTypeList"
-        @confirm="onConfirm"
-        @cancel="pickers.isShow = false"
-      />
-      <van-picker
-        v-if="pickers.type === 'picker_country'"
-        :columns="countryList.map((item) => {
-          return { value: item.country_id, text: item.country_name_cn }
-        })"
-        @confirm="onConfirm"
-        @cancel="pickers.isShow = false"
-      />
       <van-date-picker
         v-if="pickers.type === 'picker_date'"
         v-model="defaultBirthday"
@@ -141,9 +141,16 @@ onMounted(() => {
         @cancel="pickers.isShow = false"
       />
       <van-area
-        v-if="pickers.type === 'picker_address'"
+        v-else-if="pickers.type === 'picker_address'"
         title="选择地区"
         :area-list="areaList" @confirm="onConfirm"
+        @cancel="pickers.isShow = false"
+      />
+      <van-picker
+        v-else
+        v-model="pickerModel"
+        :columns="pickers.columns.length ? pickers.columns : defaultColumns[pickers.type]"
+        @confirm="onConfirm"
         @cancel="pickers.isShow = false"
       />
     </van-popup>
